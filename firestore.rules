@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Forms collection
+    match /forms/{formId} {
+      // Allow creating a form only if the request is authenticated and createdBy matches the authenticated UID
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
+
+      // Allow read/update/delete only for the creator
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+
+      // Allow public read for published forms
+      // Support both legacy `published` at the root and newer `settings.published` field
+      allow read: if resource.data.published == true || (resource.data.settings != null && resource.data.settings.published == true);
+
+      // Subcollection for responses
+      match /responses/{responseId} {
+        // Anyone can submit a response (e.g. anonymous or authenticated), but writes must include formId and answers
+        allow create: if true;
+
+        // Only the form owner can read/update/delete responses
+        allow read, update, delete: if request.auth != null && request.auth.uid == get(/databases/$(database)/documents/forms/$(formId)).data.createdBy;
+      }
+    }
+
+    // You can define other collection-level defaults here or keep everything else restricted
+    // By default, all other reads/writes are denied except as defined above
+  }
+}

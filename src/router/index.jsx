@@ -1,0 +1,64 @@
+import React from 'react';
+import { createBrowserRouter } from 'react-router-dom';
+import Intro from '../pages/Landing/Intro';
+import DashboardLayout from '../layouts/DashboardLayout';
+import MyForms from '../pages/Dashboard/MyForms';
+import CreateForm from '../pages/Dashboard/CreateForm';
+import DashboardAnalytics from '../pages/Dashboard/Analytics';
+import FormAnalytics from '../pages/Dashboard/FormAnalytics';
+import BuilderMain from '../pages/Builder/BuilderMain';
+import Preview from '../pages/Builder/Preview';
+import FillFormFlow from '../pages/FillForm/FillFormFlow';
+import ShortLinkRedirect from '../pages/ShortLinkRedirect';
+import ResponsesDashboard from '../pages/Responses/ResponsesDashboard';
+
+const withDashboardLayout = (Component) => (
+  <DashboardLayout>
+    <Component />
+  </DashboardLayout>
+);
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Intro />,
+  },
+  {
+    path: '/dashboard',
+    element: withDashboardLayout(MyForms),
+  },
+  {
+    path: '/dashboard/create',
+    element: withDashboardLayout(CreateForm),
+  },
+  {
+    path: '/dashboard/analytics',
+    element: withDashboardLayout(DashboardAnalytics),
+  },
+  {
+    path: '/dashboard/analytics/:formId',
+    element: withDashboardLayout(FormAnalytics),
+  },
+  {
+    path: '/builder',
+    element: withDashboardLayout(BuilderMain),
+  },
+  {
+    path: '/builder/preview',
+    element: <Preview />,
+  },
+  {
+    path: '/forms/:formId/fill',
+    element: <FillFormFlow />,
+  },
+  {
+    path: '/f/:shareId',
+    element: <ShortLinkRedirect />
+  },
+  {
+    path: '/forms/:formId/responses',
+    element: withDashboardLayout(ResponsesDashboard),
+  },
+]);
+
+export default router;

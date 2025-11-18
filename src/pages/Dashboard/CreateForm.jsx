@@ -1,0 +1,65 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import { useFormBuilder } from '../../hooks/useFormBuilder';
+
+const CreateForm = () => {
+  const navigate = useNavigate();
+  const { title, description, updateFormInfo, addQuestion } = useFormBuilder();
+
+  const handleCreate = () => {
+    addQuestion('short-text');
+    navigate('/builder');
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-8">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="group flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-900 mb-4"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition group-hover:border-gray-900">←</span>
+          Back to dashboard
+        </button>
+        <h1 className="font-display text-4xl text-gray-900">Create a new form</h1>
+        <p className="mt-2 text-gray-600">Start by giving your form a name and description.</p>
+      </div>
+
+      <div className="rounded-3xl border border-black/20 bg-white/10 p-8 backdrop-blur">
+        <div className="space-y-6">
+          <Input
+            label="Form Title"
+            value={title}
+            onChange={(e) => updateFormInfo({ title: e.target.value })}
+            placeholder="e.g., Customer Feedback Survey"
+            className="bg-transparent border rounded-full focus:border-gray-300 focus:bg-white"
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => updateFormInfo({ description: e.target.value })}
+              rows={4}
+              className="w-full px-4 py-3 border border border-gray-300 rounded-xl bg-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white resize-none"
+              placeholder="Describe what this form is about..."
+            />
+          </div>
+
+          <div className="pt-4 flex items-center justify-end gap-3">
+            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} variant="outline" className="px-8 border-primary-500 text-primary-600 hover:bg-primary-50">
+              Start Building →
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateForm;
