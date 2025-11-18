@@ -1,8 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Intro = () => {
   const navigate = useNavigate();
+  const [textIndex, setTextIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+
+  const texts = [
+    "Create engaging forms and track its performance.",
+    "Keep track of your leads and never lose sight of them for free.",
+    "Build beautiful forms in minutes, not hours.",
+    "Analyze responses with powerful, real-time insights.",
+    "Customize every detail to match your brand identity."
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        setTextIndex((prev) => (prev + 1) % texts.length);
+        setIsVisible(true);
+      }, 500);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGetStarted = () => {
     navigate('/dashboard/create');
@@ -19,9 +40,10 @@ const Intro = () => {
             <p className="font-display text-6xl text-gray-900 tracking-tight">fomz</p>
             <p className="font-poppins text-xs uppercase tracking-[0.5em] text-gray-500 mb-6">by RymeLabs</p>
           </div>
-          <div className="space-y-2 text-gray-800">
-            <p className="font-display text-[12px]">Create engaging forms and track its performance.</p>
-            <p className="font-display text-[12px]">Keep track of your leads and never lose sight of them for free.</p>
+          <div className="h-12 flex items-center justify-center text-gray-800">
+            <p className={`font-display text-[12px] transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              {texts[textIndex]}
+            </p>
           </div>
           <button
             type="button"
