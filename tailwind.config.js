@@ -74,8 +74,23 @@ export default {
         'text-enter': 'textEnter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
         'slide-in-right': 'slideInRight 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
         'slide-in-left': 'slideInLeft 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+        'blob': 'blob 5s infinite',
       },
       keyframes: {
+        blob: {
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+          "33%": {
+            transform: "translate(60px, -80px) scale(1.2)",
+          },
+          "66%": {
+            transform: "translate(-40px, 40px) scale(0.8)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+        },
         slideInRight: {
           '0%': { transform: 'translateX(40px) scale(0.98)', opacity: '0' },
           '100%': { transform: 'translateX(0) scale(1)', opacity: '1' },

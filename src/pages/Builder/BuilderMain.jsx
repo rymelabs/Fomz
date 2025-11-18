@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Plus, Layout, Eye } from 'lucide-react';
+import { Plus, Layout, Eye, Edit } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import QuestionCard from '../../components/builder/QuestionCard';
 import ThemeSelector from '../../components/builder/ThemeSelector';
@@ -59,8 +59,11 @@ const BuilderMain = () => {
     navigate('/builder/preview');
   };
 
-  const handleChangeLayout = () => {
-    themeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleEditSection = (sectionId, currentTitle) => {
+    const newTitle = prompt('Edit section name:', currentTitle);
+    if (newTitle && newTitle.trim() && newTitle.trim() !== currentTitle) {
+      updateSection(sectionId, { title: newTitle.trim() });
+    }
   };
 
   return (
@@ -88,7 +91,7 @@ const BuilderMain = () => {
           
           <div className="mt-6 pt-6 border-t border-gray-100 flex flex-wrap gap-3">
             <button
-              onClick={() => addSection()}
+              onClick={handleAddSection}
               className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:border-gray-900 hover:bg-gray-50"
             >
               <Plus className="h-4 w-4" />
@@ -133,7 +136,7 @@ const BuilderMain = () => {
               <div className="mt-4 flex gap-3 justify-center">
                 <button
                   className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-gray-800"
-                  onClick={() => addSection()}
+                  onClick={handleAddSection}
                 >
                   <Plus className="h-4 w-4" />
                   Add Section
@@ -154,9 +157,19 @@ const BuilderMain = () => {
                 const sectionQuestions = questions.filter(q => q.sectionId === section.id);
                 return (
                   <div key={section.id} className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6">
-                    <div className="mb-4">
-                      <h3 className="font-display text-xl text-gray-900">{section.title}</h3>
-                      {section.description && <p className="text-sm text-gray-600 mt-1">{section.description}</p>}
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-display text-xl text-gray-900">{section.title}</h3>
+                        {section.description && <p className="text-sm text-gray-600 mt-1">{section.description}</p>}
+                      </div>
+                      <button
+                        onClick={() => handleEditSection(section.id, section.title)}
+                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-1 text-xs text-gray-600 transition hover:border-gray-900 hover:bg-gray-50"
+                        title="Edit section name"
+                      >
+                        <Edit className="h-3 w-3" />
+                        Edit
+                      </button>
                     </div>
                     
                     <div className="space-y-3">
