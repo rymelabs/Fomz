@@ -59,6 +59,17 @@ const BuilderMain = () => {
     navigate('/builder/preview');
   };
 
+  const handleAddSection = () => {
+    const sectionName = prompt('Enter section name:', 'New Section');
+    if (sectionName && sectionName.trim()) {
+      addSection(sectionName.trim());
+    }
+  };
+
+  const handleChangeLayout = () => {
+    themeSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const handleEditSection = (sectionId, currentTitle) => {
     const newTitle = prompt('Edit section name:', currentTitle);
     if (newTitle && newTitle.trim() && newTitle.trim() !== currentTitle) {

@@ -131,7 +131,7 @@ const MyForms = () => {
           </button>
         </div>
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
           {forms.map((form) => {
             const previewGradient = themeTileBackgrounds[form.theme] || 'from-[#e0e7ff] via-white to-white text-gray-900';
             const isPublished = Boolean(form.settings?.published);
@@ -140,41 +140,41 @@ const MyForms = () => {
             return (
               <div
                 key={form.id}
-                className="group rounded-[32px] border border-gray-200/80 bg-white/80 p-5 backdrop-blur transition-transform duration-300 hover:-translate-y-1"
+                className="group rounded-[24px] md:rounded-[32px] border border-gray-200/80 bg-white/80 p-3 md:p-5 backdrop-blur transition-transform duration-300 hover:-translate-y-1"
               >
-                <div className={`relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br ${previewGradient} h-32 p-5 flex flex-col justify-between`}>
+                <div className={`relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/60 bg-gradient-to-br ${previewGradient} h-24 md:h-32 p-3 md:p-5 flex flex-col justify-between`}>
                   <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em]">
-                    <span className="rounded-full bg-white/20 px-3 py-1 text-[0.55rem] text-white">
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 md:px-3 md:py-1 text-[0.45rem] md:text-[0.55rem] text-white">
                       {isPublished ? 'Published' : 'Draft'}
                     </span>
-                    <span className="rounded-full bg-white/20 px-3 py-1 text-[0.55rem] text-white">
-                      {form.responses || 0} responses
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 md:px-3 md:py-1 text-[0.45rem] md:text-[0.55rem] text-white">
+                      {form.responses || 0}
                     </span>
                   </div>
                   <div>
-                    <p className="font-display text-2xl text-white">{form.title || 'Untitled form'}</p>
-                    <p className="mt-2 text-sm text-white/80">
+                    <p className="font-display text-lg md:text-2xl text-white truncate">{form.title || 'Untitled form'}</p>
+                    <p className="mt-1 md:mt-2 text-xs md:text-sm text-white/80 truncate">
                       {form.description || 'No description yet'}
                     </p>
                   </div>
                 </div>
-                <div className="mt-6 flex items-center justify-between gap-3">
+                <div className="mt-3 md:mt-6 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-3">
                   <div>
-                    <p className="text-[0.6rem] uppercase tracking-[0.4em] text-gray-500">Updated</p>
-                    <p className="text-sm text-gray-900">{updatedLabel}</p>
+                    <p className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gray-500">Updated</p>
+                    <p className="text-xs md:text-sm text-gray-900">{updatedLabel}</p>
                   </div>
                   <button
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-900 w-full md:w-auto"
                     onClick={() => navigate(`/builder?formId=${form.id}`)}
                   >
                     Open
-                    <ExternalLink className="h-4 w-4" />
+                    <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
                   </button>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                <div className="mt-3 md:mt-4 flex flex-wrap gap-2 md:gap-3 text-xs md:text-sm">
                   {isPublished ? (
                     <button
-                      className="rounded-full border border-gray-200 px-4 py-2 text-gray-700 transition hover:border-gray-900"
+                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition hover:border-gray-900"
                       onClick={async () => {
                         const url = form.shareId ? `${window.location.origin}/f/${form.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
                         try {
@@ -189,7 +189,7 @@ const MyForms = () => {
                     </button>
                   ) : (
                     <button
-                      className="rounded-full border border-gray-200 px-4 py-2 text-gray-700 transition hover:border-gray-900"
+                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition hover:border-gray-900"
                       onClick={async () => {
                         try {
                           const result = await publishFormService(form.id, true);
@@ -203,7 +203,7 @@ const MyForms = () => {
                         }
                       }}
                     >
-                      Publish & share
+                      Publish
                     </button>
                   )}
                 </div>
