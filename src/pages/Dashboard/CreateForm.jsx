@@ -14,20 +14,20 @@ const CreateForm = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
+    <div className="max-w-2xl mx-auto animate-fade-in">
+      <div className="mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <button 
           onClick={() => navigate('/dashboard')}
-          className="group flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-900 mb-4"
+          className="group flex items-center gap-2 text-sm text-gray-500 transition-all hover:text-gray-900 mb-4 hover:-translate-x-1"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition group-hover:border-gray-900">←</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition group-hover:border-gray-900 group-hover:scale-110">←</span>
           Back to dashboard
         </button>
         <h1 className="font-display text-4xl text-gray-900">Create a new form</h1>
         <p className="mt-2 text-gray-600">Start by giving your form a name and description.</p>
       </div>
 
-      <div className="rounded-3xl border border-black/20 bg-white/10 p-8 backdrop-blur">
+      <div className="rounded-3xl border border-black/20 bg-white/10 p-8 backdrop-blur animate-slide-up shadow-sm transition-all hover:shadow-md" style={{ animationDelay: '200ms' }}>
         <div className="space-y-6">
           <Input
             label="Form Title"
@@ -49,10 +49,10 @@ const CreateForm = () => {
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-3">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="transition-transform active:scale-95">
               Cancel
             </Button>
-            <Button onClick={handleCreate} variant="outline" className="px-8 border-primary-500 text-primary-600 hover:bg-primary-50">
+            <Button onClick={handleCreate} variant="outline" className="px-8 border-primary-500 text-primary-600 hover:bg-primary-50 transition-all hover:scale-105 active:scale-95">
               Start Building →
             </Button>
           </div>

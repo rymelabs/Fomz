@@ -134,12 +134,12 @@ const FormAnalytics = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between animate-slide-up" style={{ animationDelay: '100ms' }}>
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/dashboard/analytics')}
-            className="group flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-gray-900 hover:text-gray-900"
+            className="group flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-all hover:border-gray-900 hover:text-gray-900 hover:scale-110 active:scale-95"
           >
             ←
           </button>
@@ -153,11 +153,11 @@ const FormAnalytics = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 animate-slide-up" style={{ animationDelay: '200ms' }}>
         {/* Left Column: Stats & Recent - Sticky on Desktop */}
         <div className="space-y-6 lg:col-span-1">
           {/* Key Stats Card */}
-          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur">
+          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur transition-all hover:shadow-md hover:-translate-y-1">
             <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold">Total Responses</p>
             <p className="mt-2 font-display text-5xl text-gray-900">{stats.totalResponses}</p>
             
@@ -174,7 +174,7 @@ const FormAnalytics = () => {
           </div>
 
           {/* Recent Submissions Card */}
-          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur max-h-[500px] overflow-y-auto custom-scrollbar">
+          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur max-h-[500px] overflow-y-auto custom-scrollbar transition-all hover:shadow-md">
             <h3 className="font-display text-xl text-gray-900 mb-4">Recent Activity</h3>
             {responseLoading ? (
               <div className="flex justify-center py-8">
@@ -185,7 +185,7 @@ const FormAnalytics = () => {
             ) : (
               <div className="space-y-4">
                 {responses.slice(0, 10).map((response, idx) => (
-                  <div key={response.id || idx} className="rounded-xl bg-gray-50 p-4 transition hover:bg-gray-100">
+                  <div key={response.id || idx} className="rounded-xl bg-gray-50 p-4 transition-all hover:bg-gray-100 hover:scale-[1.02] cursor-pointer" onClick={() => setSelectedResponse(response)}>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-gray-900">Submission #{responses.length - idx}</span>
                       <span className="text-xs text-gray-500">{new Date(response.submittedAt).toLocaleString()}</span>
@@ -207,7 +207,7 @@ const FormAnalytics = () => {
                       )}
                     </div>
                     <button
-                      onClick={() => setSelectedResponse(response)}
+                      onClick={(e) => { e.stopPropagation(); setSelectedResponse(response); }}
                       className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                     >
                       View Full Response →
@@ -225,7 +225,7 @@ const FormAnalytics = () => {
         {/* Right Column: Question Analysis */}
         <div className="lg:col-span-2 space-y-6">
           {form.questions && (
-            <div className="rounded-3xl border border-gray-200/80 bg-white/60 p-6 backdrop-blur">
+            <div className="rounded-3xl border border-gray-200/80 bg-white/60 p-6 backdrop-blur transition-all hover:shadow-md">
               <h3 className="font-display text-2xl text-gray-900 mb-6">Question Analysis</h3>
               <ResponseAnalytics responses={responses} questions={form.questions} />
             </div>
@@ -234,7 +234,7 @@ const FormAnalytics = () => {
       </div>
 
       {/* All Responses Table */}
-      <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur overflow-hidden">
+      <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur overflow-hidden animate-slide-up transition-all hover:shadow-md" style={{ animationDelay: '300ms' }}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display text-2xl text-gray-900">All Responses</h3>
           <div className="text-sm text-gray-500">
@@ -260,7 +260,7 @@ const FormAnalytics = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {responses.map((response) => (
-                  <tr key={response.id} className="group hover:bg-gray-50/50 transition-colors">
+                  <tr key={response.id} className="group hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => setSelectedResponse(response)}>
                     <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">
                       {new Date(response.submittedAt).toLocaleString()}
                     </td>
@@ -274,8 +274,8 @@ const FormAnalytics = () => {
                     })}
                     <td className="px-4 py-3 whitespace-nowrap text-right">
                       <button
-                        onClick={() => setSelectedResponse(response)}
-                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 hover:border-primary-500 hover:text-primary-600 transition-colors bg-white"
+                        onClick={(e) => { e.stopPropagation(); setSelectedResponse(response); }}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 hover:border-primary-500 hover:text-primary-600 transition-all hover:scale-105 active:scale-95 bg-white"
                       >
                         View
                       </button>
@@ -289,11 +289,11 @@ const FormAnalytics = () => {
       </div>
 
       {/* Download Button */}
-      <div className="flex justify-center pb-8">
+      <div className="flex justify-center pb-8 animate-slide-up" style={{ animationDelay: '400ms' }}>
         <button
           onClick={downloadCSV}
           disabled={responses.length === 0}
-          className="inline-flex items-center gap-2 rounded-full bg-green-600 px-6 py-3 font-display text-white transition hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-200"
+          className="inline-flex items-center gap-2 rounded-full bg-green-600 px-6 py-3 font-display text-white transition-all hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 duration-200"
         >
           <span className="text-xl">↓</span>
           Download Responses (CSV)

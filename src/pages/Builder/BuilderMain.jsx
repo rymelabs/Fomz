@@ -78,11 +78,18 @@ const BuilderMain = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[2fr,1fr] gap-6">
-      <div className="space-y-5">
-        <header className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 shadow-sm">
-          <div className="mb-6">
+    <div className="grid lg:grid-cols-[2fr,1fr] gap-6 animate-fade-in">
+      <div className="space-y-5 animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <header className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 shadow-sm transition-all hover:shadow-md relative">
+          <div className="flex items-center justify-between mb-6">
             <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold">Form Builder</p>
+            <button
+              onClick={saveForm}
+              disabled={isSaving}
+              className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+            >
+              {isSaving ? 'Saving...' : 'Save Form'}
+            </button>
           </div>
           
           <input
@@ -103,57 +110,50 @@ const BuilderMain = () => {
           <div className="mt-6 pt-6 border-t border-gray-100 flex flex-wrap gap-3">
             <button
               onClick={handleAddSection}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:border-gray-900 hover:bg-gray-50"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Add Section
             </button>
             <button
               onClick={handleChangeLayout}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:border-gray-900 hover:bg-gray-50"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
             >
               <Layout className="h-4 w-4" />
               Change Layout
             </button>
             <button
               onClick={handlePreview}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:border-gray-900 hover:bg-gray-50"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
             >
               <Eye className="h-4 w-4" />
               Preview
             </button>
             <button
               onClick={() => addQuestion()}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-gray-800"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition-all hover:bg-gray-800 hover:scale-105 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Add Question
-            </button>
-            <button
-              onClick={saveForm}
-              disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-            >
-              {isSaving ? 'Saving...' : 'Save Form'}
             </button>
           </div>
         </header>
 
         <div className="space-y-6">
           {sections.length === 0 && questions.length === 0 ? (
-            <div className="border border-dashed border-gray-300 rounded-xl p-8 text-center">
+            <div className="border border-dashed border-gray-300 rounded-xl p-8 text-center animate-slide-up" style={{ animationDelay: '200ms' }}>
               <h3 className="text-lg font-semibold text-gray-900">No sections or questions yet</h3>
               <p className="text-gray-500 mt-2">Add your first section or question to start building.</p>
               <div className="mt-4 flex gap-3 justify-center">
                 <button
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-gray-800"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition-all hover:bg-gray-800 hover:scale-105 active:scale-95"
                   onClick={handleAddSection}
                 >
                   <Plus className="h-4 w-4" />
                   Add Section
                 </button>
                 <button
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:border-gray-900 hover:bg-gray-50"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                   onClick={() => addQuestion()}
                 >
                   <Plus className="h-4 w-4" />
@@ -167,7 +167,7 @@ const BuilderMain = () => {
               {sections.map((section, sectionIndex) => {
                 const sectionQuestions = questions.filter(q => q.sectionId === section.id);
                 return (
-                  <div key={section.id} className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6">
+                  <div key={section.id} className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 animate-slide-up transition-all hover:shadow-md" style={{ animationDelay: `${(sectionIndex + 1) * 100}ms` }}>
                     <div className="mb-4 flex items-center justify-between">
                       <div>
                         <h3 className="font-display text-xl text-gray-900">{section.title}</h3>
@@ -175,7 +175,7 @@ const BuilderMain = () => {
                       </div>
                       <button
                         onClick={() => handleEditSection(section.id, section.title)}
-                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-1 text-xs text-gray-600 transition hover:border-gray-900 hover:bg-gray-50"
+                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-1 text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                         title="Edit section name"
                       >
                         <Edit className="h-3 w-3" />
@@ -188,7 +188,7 @@ const BuilderMain = () => {
                         <div className="border border-dashed border-gray-200 rounded-xl p-6 text-center">
                           <p className="text-gray-500 text-sm">No questions in this section yet.</p>
                           <button
-                            className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition hover:border-gray-900 hover:bg-gray-50"
+                            className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                             onClick={() => addQuestion('short-text', section.id)}
                           >
                             <Plus className="h-3 w-3" />
@@ -210,7 +210,7 @@ const BuilderMain = () => {
                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                       <span className="text-xs text-gray-500">{sectionQuestions.length} questions</span>
                       <button
-                        className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition hover:border-gray-900 hover:bg-gray-50"
+                        className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                         onClick={() => addQuestion('short-text', section.id)}
                       >
                         <Plus className="h-3 w-3" />
@@ -223,7 +223,7 @@ const BuilderMain = () => {
               
               {/* Render questions not in sections */}
               {questions.filter(q => !q.sectionId).length > 0 && (
-                <div className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6">
+                <div className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 animate-slide-up" style={{ animationDelay: `${(sections.length + 1) * 100}ms` }}>
                   <div className="mb-4">
                     <h3 className="font-display text-xl text-gray-900">General Questions</h3>
                     <p className="text-sm text-gray-600 mt-1">Questions not assigned to any section</p>
@@ -246,8 +246,8 @@ const BuilderMain = () => {
         </div>
       </div>
 
-      <aside className="space-y-5">
-        <section ref={themeSectionRef} className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6">
+      <aside className="space-y-5 animate-slide-up" style={{ animationDelay: '300ms' }}>
+        <section ref={themeSectionRef} className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 transition-all hover:shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Theme</h2>
             <span className="text-xs text-gray-400">Instant preview</span>
@@ -255,12 +255,12 @@ const BuilderMain = () => {
           <ThemeSelector />
         </section>
 
-        <section className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6">
+        <section className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 transition-all hover:shadow-md">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Branding</h2>
           <LogoUploader />
         </section>
 
-        <section className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6">
+        <section className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 transition-all hover:shadow-md">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Form settings</h2>
           <FormSettings />
         </section>

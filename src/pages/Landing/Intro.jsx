@@ -48,7 +48,7 @@ const Intro = () => {
           <button
             type="button"
             onClick={handleGetStarted}
-            className="mt-8 inline-flex items-center rounded-full border border-gray-900 px-10 py-3 font-display text-lg text-gray-900 transition hover:bg-gray-900 hover:text-white"
+            className="mt-8 inline-flex items-center rounded-full border border-gray-900 px-10 py-3 font-display text-lg text-gray-900 transition-all duration-300 hover:bg-gray-900 hover:text-white hover:scale-105 active:scale-95 hover:shadow-lg"
           >
             Get Started
           </button>
