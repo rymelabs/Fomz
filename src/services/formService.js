@@ -10,7 +10,8 @@ import {
   where, 
   orderBy,
   serverTimestamp,
-  getCountFromServer
+  getCountFromServer,
+  limit
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -51,43 +52,34 @@ export const createForm = async (formData, userId) => {
  */
 export const getFormByShareId = async (shareId) => {
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('getFormByShareId: projectId=', PROJECT_ID, 'shareId=', shareId);
-    }
-    // Prefer published forms (store uses settings.published) to avoid exposing drafts
-    let q = query(
+    // Query for forms with matching shareId AND settings.published == true
+    // Note: This requires a composite index on [shareId, settings.published]
+    const q = query(
       collection(db, FORMS_COLLECTION),
       where('shareId', '==', shareId),
       where('settings.published', '==', true),
-      orderBy('createdAt', 'desc')
+      limit(1)
     );
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('getFormByShareId: queryFilters= shareId,+settings.published');
-    }
+    
     const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
-      // Fallback to legacy root `published` flag to support older docs
-      const fallbackQuery = query(
-        collection(db, FORMS_COLLECTION),
-        where('shareId', '==', shareId),
-        where('published', '==', true),
-        orderBy('createdAt', 'desc')
-      );
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('getFormByShareId: using fallback query (root published)');
-      }
-      const fbSnapshot = await getDocs(fallbackQuery);
-      if (fbSnapshot.empty) return null;
-      const fbDoc = fbSnapshot.docs[0];
-      return { id: fbDoc.id, ...fbDoc.data() };
+    
+    if (!querySnapshot.empty) {
+      const docSnap = querySnapshot.docs[0];
+      return { id: docSnap.id, ...docSnap.data() };
     }
-    const docSnap = querySnapshot.docs[0];
-    return { id: docSnap.id, ...docSnap.data() };
+    
+    return null;
   } catch (error) {
     console.error('Error getting form by shareId:', error);
+    
+    // Check for index error
+    if (error?.code === 'failed-precondition' && error?.message?.includes('index')) {
+      console.error('Missing Firestore index. Please create an index for forms: shareId ASC, settings.published ASC');
+    }
+
     // Wrap permission errors with a clearer message for debugging and UX
     if (error?.code === 'permission-denied' || (error?.message || '').toLowerCase().includes('permission')) {
-      const friendly = new Error('Insufficient Firestore permissions to resolve share link. Please ensure public reads are allowed for published forms.');
+      const friendly = new Error('Insufficient Firestore permissions. The form might not be published.');
       friendly.code = 'permission-denied';
       throw friendly;
     }

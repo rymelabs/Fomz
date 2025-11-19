@@ -12,7 +12,7 @@ service cloud.firestore {
 
       // Allow public read for published forms
       // Support both legacy `published` at the root and newer `settings.published` field
-      allow read: if resource.data.published == true || (resource.data.settings != null && resource.data.settings.published == true);
+      allow read: if resource.data.get('published', false) == true || (resource.data.get('settings', {}).get('published', false) == true);
 
       // Subcollection for responses
       match /responses/{responseId} {

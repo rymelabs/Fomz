@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, BarChart3, ExternalLink, Loader2 } from 'lucide-react';
+import { Plus, BarChart3, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
 import { getUserForms, publishForm as publishFormService } from '../../services/formService';
 import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
@@ -34,6 +35,7 @@ const MyForms = () => {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   useEffect(() => {
     let unsubscribe = false;
@@ -91,12 +93,21 @@ const MyForms = () => {
 
   return (
     <div className="space-y-12">
+      <AIGeneratorModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
+      
       <div className="flex flex-col gap-4">
         <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
         <div className="flex flex-wrap gap-3 text-xs uppercase tracking-normal text-gray-500">
           <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-2 py-1.5 text-sm font-semibold text-gray-900 transition-all active:scale-95" onClick={() => navigate('/dashboard/create')}>
             <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-900 text-sm transition-colors group-hover:border-white">+</span>
             Create a form
+          </button>
+          <button 
+            className="inline-flex items-center gap-2 rounded-full border border-purple-600 bg-purple-50 px-3 py-1.5 text-sm font-semibold text-purple-700 transition-all hover:bg-purple-100 active:scale-95" 
+            onClick={() => setIsAIModalOpen(true)}
+          >
+            <Sparkles className="h-4 w-4" />
+            Create with AI
           </button>
           <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-2 py-1.5 text-sm text-gray-600 transition-all active:scale-95" onClick={() => navigate('/dashboard/analytics')}>
             <BarChart3 className="h-3 w-3" />

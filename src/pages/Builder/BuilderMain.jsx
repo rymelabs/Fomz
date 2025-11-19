@@ -7,7 +7,7 @@ import LogoUploader from '../../components/builder/LogoUploader';
 import FormSettings from '../../components/builder/FormSettings';
 import StyleSettings from '../../components/builder/StyleSettings';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { getForm } from '../../services/formService';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,16 +28,23 @@ const BuilderMain = () => {
   } = useFormBuilder();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const initializedRef = useRef(false);
   const themeSectionRef = useRef(null);
 
   useEffect(() => {
     if (!initializedRef.current) {
+      // If coming from AI generator, don't reset the form
+      if (location.state?.fromAI) {
+        initializedRef.current = true;
+        return;
+      }
+
       // Initialize with new empty form
       initForm();
       initializedRef.current = true;
     }
-  }, [initForm]);
+  }, [initForm, location.state]);
 
   useEffect(() => {
     const fid = searchParams.get('formId');

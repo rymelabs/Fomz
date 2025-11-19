@@ -25,15 +25,18 @@ export const useFormBuilder = () => {
     store.setSaving(true);
 
     try {
+      let formId = store.id;
       if (store.id) {
         const updated = await updateForm(store.id, payload);
         if (updated.shareId) store.updateFormInfo({ shareId: updated.shareId });
       } else {
         const doc = await createForm(payload, user.uid);
+        formId = doc.id;
         store.updateFormInfo({ id: doc.id });
         if (doc.shareId) store.updateFormInfo({ shareId: doc.shareId });
       }
       store.markSaved();
+      return formId;
     } finally {
       store.setSaving(false);
     }
@@ -43,11 +46,13 @@ export const useFormBuilder = () => {
     if (!user) {
       throw new Error('Must be signed in to publish form');
     }
-    if (!store.id) {
-      await saveForm();
+    
+    let formId = store.id;
+    if (!formId) {
+      formId = await saveForm();
     }
 
-    const result = await publishFormService(store.id, true);
+    const result = await publishFormService(formId, true);
     if (result.shareId) store.updateFormInfo({ shareId: result.shareId });
     store.updateSettings({ published: true });
     return result;

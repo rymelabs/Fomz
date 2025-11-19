@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
+import { generateFormFromPrompt } from '../services/aiService';
 
 const defaultFormState = {
   id: null,
@@ -31,6 +32,7 @@ export const useFormBuilderStore = create((set, get) => ({
   currentQuestionIndex: null,
   isDirty: false,
   isSaving: false,
+  isGenerating: false,
 
   // Initialize form (new or existing)
   initForm: (formData = null) => {
@@ -260,5 +262,41 @@ export const useFormBuilderStore = create((set, get) => ({
       settings: state.settings,
       style: state.style
     };
+  },
+
+  // AI Generation
+  generateForm: async (prompt) => {
+    set({ isGenerating: true });
+    try {
+      const aiData = await generateFormFromPrompt(prompt);
+      
+      // Map AI questions to store format
+      const newQuestions = (aiData.questions || []).map(q => ({
+        id: uuidv4(),
+        sectionId: null,
+        type: q.type || 'short-text',
+        label: q.title || 'Untitled Question',
+        required: q.required || false,
+        placeholder: q.placeholder || '',
+        helpText: '',
+        options: q.options || [],
+        validation: { min: null, max: null, pattern: null }
+      }));
+
+      set({
+        title: aiData.title || 'AI Generated Form',
+        description: aiData.description || '',
+        questions: newQuestions,
+        sections: [], 
+        isDirty: true,
+        isGenerating: false
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Store: AI Generation failed", error);
+      set({ isGenerating: false });
+      return false;
+    }
   }
 }));
