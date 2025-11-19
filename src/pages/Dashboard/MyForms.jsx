@@ -77,10 +77,10 @@ const MyForms = () => {
   if (!user) {
     return (
       <div className="py-24 text-center">
-        <p className="font-display text-2xl text-gray-900">Welcome to fomz</p>
+        <p className="font-display text-xl text-gray-900">Welcome to fomz</p>
         <p className="mt-3 text-gray-600">Sign in to create and manage your forms.</p>
         <button
-          className="mt-8 inline-flex items-center rounded-full border border-gray-900 px-10 py-3 font-display text-lg text-gray-900 transition-all hover:bg-gray-900 hover:text-white hover:scale-105 active:scale-95"
+          className="mt-8 inline-flex items-center rounded-full border border-gray-900 px-10 py-3 font-display text-lg text-gray-900 transition-all active:scale-95"
           onClick={signInGoogle}
         >
           Sign in with Google
@@ -92,13 +92,13 @@ const MyForms = () => {
   return (
     <div className="space-y-12">
       <div className="flex flex-col gap-4">
-        <p className="font-display text-2xl text-gray-900">My Forms</p>
+        <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
         <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.4em] text-gray-500">
-          <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-4 py-2 font-semibold text-gray-900 transition-all hover:bg-gray-900 hover:text-white active:scale-95" onClick={() => navigate('/dashboard/create')}>
+          <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-4 py-2 font-semibold text-gray-900 transition-all active:scale-95" onClick={() => navigate('/dashboard/create')}>
             <span className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-900 text-base transition-colors group-hover:border-white">+</span>
             Create a form
           </button>
-          <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-gray-600 transition-all hover:border-gray-900 hover:text-gray-900 active:scale-95" onClick={() => navigate('/dashboard/analytics')}>
+          <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-gray-600 transition-all active:scale-95" onClick={() => navigate('/dashboard/analytics')}>
             <BarChart3 className="h-4 w-4" />
             View analytics
           </button>
@@ -110,7 +110,7 @@ const MyForms = () => {
           <Loader2 className="h-10 w-10 animate-spin text-primary-500" />
         </div>
       ) : errorMessage ? (
-        <Card className="text-center p-6">
+        <Card className="text-center p-4">
           <h3 className="text-xl font-semibold text-gray-900">Error</h3>
           <p className="text-gray-500 mt-2">{errorMessage}</p>
           <div className="mt-4">
@@ -120,10 +120,10 @@ const MyForms = () => {
       ) : forms.length === 0 ? (
         <div className="text-center py-24">
           <ClipboardIllustration />
-          <h3 className="mt-8 font-display text-3xl text-gray-900">You Have No Forms Yet</h3>
+          <h3 className="mt-8 font-display text-2xl text-gray-900">You Have No Forms Yet</h3>
           <p className="mt-4 text-gray-600">Create your first form to start collecting responses.</p>
           <button
-            className="mt-8 inline-flex items-center gap-3 rounded-full border border-gray-900 px-8 py-3 font-display text-lg text-gray-900 transition-all hover:bg-gray-900 hover:text-white hover:scale-105 active:scale-95"
+            className="mt-8 inline-flex items-center gap-3 rounded-full border border-gray-900 px-8 py-3 font-display text-lg text-gray-900 transition-all active:scale-95"
             onClick={() => navigate('/dashboard/create')}
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-900 text-2xl leading-none transition-colors group-hover:border-white">+</span>
@@ -131,7 +131,7 @@ const MyForms = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4 xl:grid-cols-5">
           {forms.map((form, index) => {
             const previewGradient = themeTileBackgrounds[form.theme] || 'from-[#e0e7ff] via-white to-white text-gray-900';
             const isPublished = Boolean(form.settings?.published);
@@ -140,10 +140,10 @@ const MyForms = () => {
             return (
               <div
                 key={form.id}
-                className="group rounded-[24px] md:rounded-[32px] border border-gray-200/80 bg-white/80 p-3 md:p-5 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-lg animate-card-enter opacity-0"
+                className="group rounded-[24px] md:rounded-[32px] border border-gray-200/80 bg-white/80 p-3 md:p-4 backdrop-blur transition-all duration-300 animate-card-enter opacity-0"
                 style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
               >
-                <div className={`relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/60 bg-gradient-to-br ${previewGradient} h-24 md:h-32 p-3 md:p-5 flex flex-col justify-between transition-transform duration-500 group-hover:scale-[1.02]`}>
+                <div className={`relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/60 bg-gradient-to-br ${previewGradient} h-20 md:h-24 p-3 md:p-4 flex flex-col justify-between transition-transform duration-500`}>
                   <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em]">
                     <span className="rounded-full bg-white/20 px-2 py-0.5 md:px-3 md:py-1 text-[0.45rem] md:text-[0.55rem] text-white">
                       {isPublished ? 'Published' : 'Draft'}
@@ -165,7 +165,7 @@ const MyForms = () => {
                     <p className="text-xs md:text-sm text-gray-900">{updatedLabel}</p>
                   </div>
                   <button
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-900 w-full md:w-auto transition-all hover:bg-gray-900 hover:text-white active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-900 w-full md:w-auto transition-all active:scale-95"
                     onClick={() => navigate(`/builder?formId=${form.id}`)}
                   >
                     Open
@@ -175,7 +175,7 @@ const MyForms = () => {
                 <div className="mt-3 md:mt-4 flex flex-wrap gap-2 md:gap-3 text-xs md:text-sm">
                   {isPublished ? (
                     <button
-                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
                       onClick={async () => {
                         const url = form.shareId ? `${window.location.origin}/f/${form.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
                         try {
@@ -190,7 +190,7 @@ const MyForms = () => {
                     </button>
                   ) : (
                     <button
-                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
                       onClick={async () => {
                         try {
                           const result = await publishFormService(form.id, true);

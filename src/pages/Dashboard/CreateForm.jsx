@@ -18,23 +18,23 @@ const CreateForm = () => {
       <div className="mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <button 
           onClick={() => navigate('/dashboard')}
-          className="group flex items-center gap-2 text-sm text-gray-500 transition-all hover:text-gray-900 mb-4 hover:-translate-x-1"
+          className="group flex items-center gap-2 text-sm text-gray-500 transition-all mb-4"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition group-hover:border-gray-900 group-hover:scale-110">←</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition">←</span>
           Back to dashboard
         </button>
-        <h1 className="font-display text-2xl text-gray-900">Create a new form</h1>
-        <p className="mt-2 text-gray-600">Start by giving your form a name and description.</p>
+        <h1 className="font-display text-2xl text-gray-900 font-bold">Create a new form</h1>
+        <p className="mt-2 text-gray-600 text-xs">Start by giving your form a name and description.</p>
       </div>
 
-      <div className="rounded-3xl border border-black/20 bg-white/10 p-8 backdrop-blur animate-slide-up shadow-sm transition-all hover:shadow-md" style={{ animationDelay: '200ms' }}>
-        <div className="space-y-6">
+      <div className="rounded-3xl border border-black/20 bg-white/10 p-6 backdrop-blur animate-slide-up transition-all" style={{ animationDelay: '200ms' }}>
+        <div className="space-y-4">
           <Input
             label="Form Title"
             value={title}
             onChange={(e) => updateFormInfo({ title: e.target.value })}
             placeholder="e.g., Customer Feedback Survey"
-            className="bg-transparent border rounded-full focus:border-gray-300 focus:bg-white"
+            className="bg-transparent border rounded-full focus:border-gray-300 focus:bg-white text-sm"
           />
 
           <div>
@@ -43,16 +43,16 @@ const CreateForm = () => {
               value={description}
               onChange={(e) => updateFormInfo({ description: e.target.value })}
               rows={4}
-              className="w-full px-4 py-3 border border border-gray-300 rounded-xl bg-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white resize-none"
+              className="w-full px-4 py-3 border border border-gray-300 rounded-xl bg-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white resize-none text-sm"
               placeholder="Describe what this form is about..."
             />
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-3">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')} className="transition-transform active:scale-95">
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="transition-transform active:scale-95">
               Cancel
             </Button>
-            <Button onClick={handleCreate} variant="outline" className="px-8 border-primary-500 text-primary-600 hover:bg-primary-50 transition-all hover:scale-105 active:scale-95">
+            <Button onClick={handleCreate} variant="outline" size="sm" className="border-primary-500 text-primary-600 transition-all active:scale-95">
               Start Building →
             </Button>
           </div>

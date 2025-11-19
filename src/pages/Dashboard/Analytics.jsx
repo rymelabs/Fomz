@@ -64,10 +64,10 @@ const DashboardAnalytics = () => {
           <h3 className="font-display text-3xl text-gray-900 mb-4">No forms yet</h3>
           <p className="text-gray-600 mb-8">Create a form to start tracking analytics and responses.</p>
           <button
-            className="inline-flex items-center gap-3 rounded-full border border-gray-900 px-8 py-3 font-display text-lg text-gray-900 transition-all hover:bg-gray-900 hover:text-white hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-3 rounded-full border border-gray-900 px-8 py-3 font-display text-lg text-gray-900 transition-all active:scale-95"
             onClick={() => navigate('/dashboard/create')}
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-900 text-2xl leading-none transition-colors group-hover:border-white">+</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-900 text-2xl leading-none transition-colors">+</span>
             Create form
           </button>
         </div>
@@ -78,7 +78,7 @@ const DashboardAnalytics = () => {
             {forms.map((form, index) => (
               <div
                 key={form.id}
-                className="aspect-[2/1] rounded-xl border border-gray-200/90 p-3 transition-all duration-200 cursor-pointer hover:shadow-lg hover:border-primary-500 flex flex-col justify-center hover:-translate-y-1 bg-white/10 backdrop-blur animate-card-enter opacity-0"
+                className="aspect-[2/1] rounded-xl border border-gray-200/90 p-3 transition-all duration-200 cursor-pointer flex flex-col justify-center bg-white/10 backdrop-blur animate-card-enter opacity-0"
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                 onClick={() => navigate(`/dashboard/analytics/${form.id}`)}
               >
