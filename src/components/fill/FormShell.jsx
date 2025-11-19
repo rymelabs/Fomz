@@ -6,8 +6,41 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form }
   const gradient = themeData?.gradient || 'linear-gradient(135deg, #7CA7FF 0%, #B6F3CF 100%)';
   const accent = themeData?.primaryColor || '#2563eb';
 
+  // Style settings
+  const fontFamily = form?.style?.fontFamily || 'sans';
+  const fontSize = form?.style?.fontSize || 'md';
+  const borderRadius = form?.style?.borderRadius || 'lg';
+
+  const fontMap = {
+    sans: 'font-sans',
+    serif: 'font-serif',
+    mono: 'font-mono'
+  };
+
+  const sizeMap = {
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg'
+  };
+
+  const radiusMap = {
+    none: '0px',
+    sm: '0.25rem',
+    md: '0.5rem',
+    lg: '1rem',
+    full: '9999px'
+  };
+
+  const containerStyle = {
+    '--element-radius': radiusMap[borderRadius] || '1rem',
+    '--form-font-size': fontSize === 'sm' ? '0.875rem' : fontSize === 'lg' ? '1.125rem' : '1rem'
+  };
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div 
+      className={`relative min-h-screen overflow-hidden bg-white ${fontMap[fontFamily] || 'font-sans'} ${sizeMap[fontSize] || 'text-base'}`}
+      style={containerStyle}
+    >
       <div
         className="pointer-events-none absolute inset-0 opacity-60 blur-3xl animate-gradient-xy"
         style={{ background: gradient, backgroundSize: '400% 400%' }}

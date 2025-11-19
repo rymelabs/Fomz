@@ -1,10 +1,13 @@
-import React from 'react';
-import { GripVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import { GripVertical, Image as ImageIcon, Loader2, Upload } from 'lucide-react';
 import Input from '../ui/Input';
 import Toggle from '../ui/Toggle';
 import OptionInput from './OptionInput';
 import QuestionToolbar from './QuestionToolbar';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
+import { storage } from '../../services/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useUserStore } from '../../store/userStore';
 
 const QUESTION_TYPES = [
   { value: 'short-text', label: 'Short Answer' },
@@ -16,6 +19,7 @@ const QUESTION_TYPES = [
   { value: 'email', label: 'Email' },
   { value: 'date', label: 'Date' },
   { value: 'rating', label: 'Rating' },
+  { value: 'image', label: 'Image' },
   { value: 'section', label: 'Section Break' }
 ];
 
@@ -28,6 +32,9 @@ const QuestionCard = ({ question, index, total }) => {
     setCurrentQuestion,
     currentQuestionIndex
   } = useFormBuilder();
+  
+  const { user } = useUserStore();
+  const [uploading, setUploading] = useState(false);
 
   const isActive = currentQuestionIndex === index;
   const isOptionsQuestion = ['multiple-choice', 'checkbox', 'dropdown'].includes(question.type);
@@ -38,11 +45,33 @@ const QuestionCard = ({ question, index, total }) => {
     updateQuestion(question.id, { [field]: value });
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !user) return;
+
+    try {
+      setUploading(true);
+      const path = `form-images/${user.uid}/${question.id}-${Date.now()}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      handleQuestionChange('imageUrl', url);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleTypeChange = (type) => {
     const baseUpdates = { type };
 
     if (['multiple-choice', 'checkbox', 'dropdown'].includes(type) && !question.options?.length) {
       baseUpdates.options = ['Option 1'];
+    }
+    
+    if (type === 'image') {
+      baseUpdates.required = false;
     }
 
     if (type === 'section') {
@@ -151,6 +180,52 @@ const QuestionCard = ({ question, index, total }) => {
                     })}
                     className="px-3 py-1.5 text-sm"
                   />
+                </div>
+              )}
+
+              {question.type === 'image' && (
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                  {question.imageUrl ? (
+                    <div className="relative rounded-lg border border-gray-200 overflow-hidden group">
+                      <img 
+                        src={question.imageUrl} 
+                        alt="Question" 
+                        className="w-full h-48 object-contain bg-gray-50"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <label className="cursor-pointer p-2 bg-white rounded-full hover:bg-gray-100 transition-colors">
+                          <Upload className="h-4 w-4 text-gray-700" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        {uploading ? (
+                          <Loader2 className="h-8 w-8 text-gray-400 animate-spin mb-2" />
+                        ) : (
+                          <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
+                        )}
+                        <p className="text-sm text-gray-500">
+                          {uploading ? 'Uploading...' : 'Click to upload image'}
+                        </p>
+                      </div>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                      />
+                    </label>
+                  )}
                 </div>
               )}
 

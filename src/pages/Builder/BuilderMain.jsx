@@ -5,6 +5,7 @@ import QuestionCard from '../../components/builder/QuestionCard';
 import ThemeSelector from '../../components/builder/ThemeSelector';
 import LogoUploader from '../../components/builder/LogoUploader';
 import FormSettings from '../../components/builder/FormSettings';
+import StyleSettings from '../../components/builder/StyleSettings';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useSearchParams } from 'react-router-dom';
 import { getForm } from '../../services/formService';
@@ -253,6 +254,11 @@ const BuilderMain = () => {
             <span className="text-xs text-gray-400">Instant preview</span>
           </div>
           <ThemeSelector />
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Typography & Style</h2>
+          <StyleSettings />
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all">

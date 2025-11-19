@@ -17,6 +17,11 @@ const defaultFormState = {
     redirectUrl: '',
     showProgressBar: true,
     published: false
+  },
+  style: {
+    fontFamily: 'sans',
+    fontSize: 'md',
+    borderRadius: 'lg'
   }
 };
 
@@ -30,7 +35,14 @@ export const useFormBuilderStore = create((set, get) => ({
   // Initialize form (new or existing)
   initForm: (formData = null) => {
     if (formData) {
-      set({ ...formData, isDirty: false });
+      // Ensure style object exists for older forms
+      const mergedData = {
+        ...defaultFormState,
+        ...formData,
+        style: { ...defaultFormState.style, ...(formData.style || {}) },
+        settings: { ...defaultFormState.settings, ...(formData.settings || {}) }
+      };
+      set({ ...mergedData, isDirty: false });
     } else {
       set({ ...defaultFormState, isDirty: false });
     }
@@ -40,6 +52,12 @@ export const useFormBuilderStore = create((set, get) => ({
   updateFormInfo: (updates) => set((state) => ({
     ...state,
     ...updates,
+    isDirty: true
+  })),
+
+  // Update style
+  updateStyle: (updates) => set((state) => ({
+    style: { ...state.style, ...updates },
     isDirty: true
   })),
 
@@ -236,9 +254,11 @@ export const useFormBuilderStore = create((set, get) => ({
       description: state.description,
       theme: state.theme,
       logoUrl: state.logoUrl,
+      logoPath: state.logoPath,
       sections: state.sections,
       questions: state.questions,
-      settings: state.settings
+      settings: state.settings,
+      style: state.style
     };
   }
 }));

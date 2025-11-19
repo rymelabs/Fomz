@@ -9,6 +9,7 @@ import Rating from '../../components/forms/Rating';
 import DateInput from '../../components/forms/DateInput';
 import NumberInput from '../../components/forms/NumberInput';
 import EmailInput from '../../components/forms/EmailInput';
+import ImageBlock from '../../components/forms/ImageBlock';
 import { useTheme } from '../../hooks/useTheme';
 import toast from 'react-hot-toast';
 
@@ -21,7 +22,8 @@ const componentMap = {
   'rating': Rating,
   'date': DateInput,
   'number': NumberInput,
-  'email': EmailInput
+  'email': EmailInput,
+  'image': ImageBlock
 };
 
 const QuestionStep = ({ 

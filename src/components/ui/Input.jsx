@@ -10,7 +10,7 @@ const Input = forwardRef(({
   icon: Icon,
   ...props 
 }, ref) => {
-  const baseStyles = 'w-full px-4 py-2 border rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:scale-[1.01] focus:shadow-md';
+  const baseStyles = 'w-full px-4 py-2 border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:scale-[1.01] focus:shadow-md';
   
   const errorStyles = error ? 'border-red-500' : 'border-gray-300';
   
@@ -34,6 +34,7 @@ const Input = forwardRef(({
           ref={ref}
           type={type}
           className={`${baseStyles} ${errorStyles} ${Icon ? 'pl-10' : ''} ${className}`}
+          style={{ borderRadius: 'var(--element-radius, 9999px)', ...props.style }}
           {...props}
         />
       </div>

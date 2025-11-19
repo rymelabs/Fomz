@@ -29,13 +29,14 @@ const Button = ({
     lg: 'px-6 py-3 text-lg',
     xl: 'px-8 py-4 text-xl'
   };
-  
+
   return (
     <button
       type={type}
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      style={{ borderRadius: 'var(--element-radius, 9999px)', ...props.style }}
       {...props}
     >
       {loading && (
