@@ -44,7 +44,7 @@ const DashboardAnalytics = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-2 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        <p className="font-display text-4xl text-gray-900">Analytics</p>
+        <p className="font-display text-3xl text-gray-900">Analytics</p>
         <p className="text-gray-600">Track performance and insights for your forms.</p>
       </div>
       {loading ? (
