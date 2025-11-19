@@ -78,46 +78,46 @@ const BuilderMain = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[2fr,1fr] gap-6 animate-fade-in">
-      <div className="space-y-5 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        <header className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 shadow-sm transition-all hover:shadow-md relative">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold">Form Builder</p>
+    <div className="grid lg:grid-cols-[2fr,1fr] gap-4 animate-fade-in">
+      <div className="space-y-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <header className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all relative">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs uppercase tracking-normal text-gray-500 font-semibold">Form Builder</p>
             <button
               onClick={saveForm}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
               {isSaving ? 'Saving...' : 'Save Form'}
             </button>
           </div>
           
           <input
-            className="w-full font-display text-4xl text-gray-900 placeholder:text-gray-400 focus:outline-none bg-transparent border-b-2 border-transparent focus:border-gray-300 transition-colors pb-2"
+            className="w-full font-display text-2xl font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none bg-transparent border-b-2 border-transparent focus:border-gray-300 transition-colors pb-1"
             value={title}
             onChange={(e) => updateFormInfo({ title: e.target.value })}
             placeholder="Untitled form"
           />
           
           <textarea
-            className="mt-4 w-full text-gray-600 placeholder:text-gray-400 focus:outline-none bg-transparent resize-none rounded-xl border border-transparent focus:border-gray-300 focus:bg-white transition-all p-3"
+            className="mt-2 w-full text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none bg-transparent resize-none rounded-xl border border-transparent focus:border-gray-300 focus:bg-white transition-all p-2"
             value={description}
             onChange={(e) => updateFormInfo({ description: e.target.value })}
             placeholder="Add a description to your form..."
             rows={2}
           />
           
-          <div className="mt-6 pt-6 border-t border-gray-100 flex flex-wrap gap-3">
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-2">
             <button
               onClick={handleAddSection}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Add Section
             </button>
             <button
               onClick={handleChangeLayout}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
             >
               <Layout className="h-4 w-4" />
               Change Layout
@@ -247,21 +247,21 @@ const BuilderMain = () => {
       </div>
 
       <aside className="space-y-5 animate-slide-up" style={{ animationDelay: '300ms' }}>
-        <section ref={themeSectionRef} className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 transition-all hover:shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Theme</h2>
+        <section ref={themeSectionRef} className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-gray-900">Theme</h2>
             <span className="text-xs text-gray-400">Instant preview</span>
           </div>
           <ThemeSelector />
         </section>
 
-        <section className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 transition-all hover:shadow-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Branding</h2>
+        <section className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Branding</h2>
           <LogoUploader />
         </section>
 
-        <section className="rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 transition-all hover:shadow-md">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Form settings</h2>
+        <section className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Form settings</h2>
           <FormSettings />
         </section>
       </aside>

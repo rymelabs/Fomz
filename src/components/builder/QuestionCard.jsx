@@ -69,17 +69,17 @@ const QuestionCard = ({ question, index, total }) => {
 
   return (
     <div
-      className={`bg-white rounded-2xl border transition shadow-soft ${
-        isActive ? 'border-primary-400 ring-1 ring-primary-200' : 'border-gray-100'
+      className={`bg-white rounded-xl border transition ${
+        isActive ? 'border-primary-400 ring-1 ring-primary-200' : 'border-gray-200'
       }`}
       onClick={() => setCurrentQuestion(index)}
     >
-      <div className="flex items-start gap-4 p-6">
-        <GripVertical className="h-6 w-6 text-gray-400 mt-2" />
+      <div className="flex items-start gap-3 p-4">
+        <GripVertical className="h-5 w-5 text-gray-400 mt-2" />
 
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-4">
           {/* Question header */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex-1">
               <Input
                 label="Question"
@@ -87,16 +87,17 @@ const QuestionCard = ({ question, index, total }) => {
                 onChange={(e) => handleQuestionChange('label', e.target.value)}
                 placeholder="Enter your question"
                 required
+                className="px-3 py-1.5 text-sm"
               />
             </div>
-            <div className="md:w-64">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="md:w-56">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Question type
               </label>
               <select
                 value={question.type}
                 onChange={(e) => handleTypeChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 {QUESTION_TYPES.map((type) => (
                   <option key={type.value} value={type.value}>
@@ -115,6 +116,7 @@ const QuestionCard = ({ question, index, total }) => {
                 value={question.helpText}
                 onChange={(e) => handleQuestionChange('helpText', e.target.value)}
                 placeholder="Optional description"
+                className="px-3 py-1.5 text-sm"
               />
 
               {isTextQuestion && (
@@ -123,11 +125,12 @@ const QuestionCard = ({ question, index, total }) => {
                   value={question.placeholder}
                   onChange={(e) => handleQuestionChange('placeholder', e.target.value)}
                   placeholder="Your answer"
+                  className="px-3 py-1.5 text-sm"
                 />
               )}
 
               {isNumberQuestion && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <Input
                     label="Minimum"
                     type="number"
@@ -136,6 +139,7 @@ const QuestionCard = ({ question, index, total }) => {
                       ...question.validation,
                       min: e.target.value
                     })}
+                    className="px-3 py-1.5 text-sm"
                   />
                   <Input
                     label="Maximum"
@@ -145,6 +149,7 @@ const QuestionCard = ({ question, index, total }) => {
                       ...question.validation,
                       max: e.target.value
                     })}
+                    className="px-3 py-1.5 text-sm"
                   />
                 </div>
               )}
@@ -164,7 +169,7 @@ const QuestionCard = ({ question, index, total }) => {
         </div>
       </div>
 
-      <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+      <div className="border-t border-gray-200 px-4 py-3 flex items-center justify-between">
         <p className="text-xs text-gray-400">Question {index + 1}</p>
         <QuestionToolbar
           onMoveUp={handleMoveUp}

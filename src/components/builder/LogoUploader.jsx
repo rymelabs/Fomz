@@ -52,11 +52,11 @@ const LogoUploader = () => {
   };
 
   return (
-    <div className="p-4 bg-white border border-gray-200 rounded-2xl">
-      <p className="text-sm font-semibold text-gray-900 mb-3">Brand logo</p>
+    <div className="p-3 bg-white border border-gray-200 rounded-xl">
+      <p className="text-xs font-semibold text-gray-900 mb-2">Brand logo</p>
       {logoUrl ? (
-        <div className="flex items-center gap-4">
-          <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-lg border" />
+        <div className="flex items-center gap-3">
+          <img src={logoUrl} alt="Logo" className="h-12 w-12 object-contain rounded-lg border" />
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
               Replace
@@ -70,15 +70,15 @@ const LogoUploader = () => {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-xl py-10 text-gray-500 hover:border-primary-400 hover:text-primary-500 transition"
+          className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg py-6 text-gray-500 transition"
         >
           {uploading ? (
-            <Loader2 className="h-10 w-10 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin" />
           ) : (
             <>
-              <Upload className="h-10 w-10 mb-3" />
-              <p className="text-sm font-medium">Upload logo</p>
-              <p className="text-xs">PNG, JPG up to 2MB</p>
+              <Upload className="h-8 w-8 mb-2" />
+              <p className="text-xs font-medium">Upload logo</p>
+              <p className="text-[10px]">PNG, JPG up to 2MB</p>
             </>
           )}
         </button>

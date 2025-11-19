@@ -13,7 +13,7 @@ const ThemeSelector = () => {
   };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
       {Object.entries(themes).map(([key, theme]) => {
         const isActive = currentTheme === key;
 
@@ -22,27 +22,18 @@ const ThemeSelector = () => {
             key={key}
             type="button"
             onClick={() => handleSelect(key)}
-            className={`group relative flex flex-col gap-3 rounded-2xl border bg-white p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-400 ${
-              isActive ? 'border-primary-500 shadow-glow' : 'border-gray-200 shadow-sm'
+            className={`group relative flex flex-col gap-2 rounded-xl border bg-white p-3 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 ${
+              isActive ? 'border-primary-500 ring-1 ring-primary-200' : 'border-gray-200'
             }`}
           >
-            <div className="relative h-28 w-full overflow-hidden rounded-xl">
+            <div className="relative h-20 w-full overflow-hidden rounded-lg">
               <div className="absolute inset-0" style={{ background: theme.gradient }} />
               <div className="absolute inset-0 bg-black/10" />
-              <div className="absolute inset-x-3 top-3 flex flex-col gap-2 text-white/80">
-                <div className="h-2 rounded-full bg-white/30" />
-                <div className="flex flex-col gap-1 rounded-xl border border-white/30 bg-white/10 p-3 text-[11px] leading-tight">
-                  <span className="font-semibold tracking-wide">Sample form</span>
+              <div className="absolute inset-x-2 top-2 flex flex-col gap-1.5 text-white/80">
+                <div className="h-1.5 rounded-full bg-white/30" />
+                <div className="flex flex-col gap-1 rounded-lg border border-white/30 bg-white/10 p-2 text-[10px] leading-tight">
+                  <span className="font-semibold tracking-wide">Sample</span>
                   <div className="h-1 rounded-full bg-white/40" />
-                  <div className="h-1 rounded-full bg-white/20" />
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1 rounded-lg border border-white/20 bg-white/15 p-1">
-                    <div className="h-4 rounded bg-white/40" />
-                  </div>
-                  <div className="flex-1 rounded-lg border border-white/20 bg-white/15 p-1">
-                    <div className="h-4 rounded bg-white/40" />
-                  </div>
                 </div>
               </div>
             </div>

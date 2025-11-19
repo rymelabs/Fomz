@@ -16,15 +16,15 @@ const OptionInput = ({ question, disabled = false }) => {
   const handleDeleteOption = (index) => deleteOption(question.id, index);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {question.options.map((option, index) => (
-        <div key={index} className="flex items-center gap-3">
-          <GripVertical className="h-5 w-5 text-gray-400" />
+        <div key={index} className="flex items-center gap-2">
+          <GripVertical className="h-4 w-4 text-gray-400" />
           <Input
             value={option}
             onChange={(e) => handleUpdateOption(index, e.target.value)}
             placeholder={`Option ${index + 1}`}
-            className="flex-1"
+            className="flex-1 px-3 py-1.5 text-sm"
             disabled={disabled}
           />
           {question.options.length > 1 && (
@@ -45,7 +45,7 @@ const OptionInput = ({ question, disabled = false }) => {
         size="sm"
         onClick={handleAddOption}
         disabled={disabled}
-        className="mt-2"
+        className="mt-1"
         icon={Plus}
       >
         Add option

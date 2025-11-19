@@ -103,17 +103,17 @@ const FormSettings = () => {
         onChange={(e) => updateSettings({ redirectUrl: e.target.value })}
         helpText="Optional link after submission"
       />
-      <div className="flex gap-2 mt-4 flex-wrap">
-        <Button variant="outline" onClick={() => saveForm()}>
+      <div className="flex gap-2 mt-3 flex-wrap">
+        <Button variant="outline" size="sm" onClick={() => saveForm()}>
           Save
         </Button>
-        <Button onClick={handleCopyLink} disabled={!id && !shareId}>
+        <Button size="sm" onClick={handleCopyLink} disabled={!id && !shareId}>
           Copy link
         </Button>
-        <Button variant="outline" onClick={handleCopyEmbed} disabled={!id && !shareId}>
+        <Button variant="outline" size="sm" onClick={handleCopyEmbed} disabled={!id && !shareId}>
           Copy embed
         </Button>
-        <Button onClick={handleShare}>
+        <Button size="sm" onClick={handleShare}>
           Publish & Share
         </Button>
       </div>
