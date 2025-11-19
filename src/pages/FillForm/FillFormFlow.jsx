@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Start from './Start';
 import QuestionStep from './QuestionStep';
@@ -10,6 +10,7 @@ import { useThemeStore } from '../../store/themeStore';
 import { useUserStore } from '../../store/userStore';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
+import toast from 'react-hot-toast';
 
 const FillFormFlow = () => {
   const { formId } = useParams();
@@ -20,6 +21,7 @@ const FillFormFlow = () => {
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [direction, setDirection] = useState('forward');
+  const isSubmittingRef = useRef(false);
   const setTheme = useThemeStore((state) => state.setTheme);
   const { user } = useUserStore();
   const { signInGoogle } = useAuth();
@@ -145,9 +147,25 @@ const FillFormFlow = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!formId) return;
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!formId || submitting || isSubmittingRef.current) return;
+
+    // Validate required fields
+    const firstMissing = questions.find(q => {
+      if (!q.required) return false;
+      const val = answers[q.id];
+      return val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0);
+    });
+
+    if (firstMissing) {
+      toast.error('Please answer all required questions');
+      goToQuestion(firstMissing.id);
+      return;
+    }
+
     try {
+      isSubmittingRef.current = true;
       setSubmitting(true);
       const payload = {
         answers: questions.map((question) => ({
@@ -165,8 +183,10 @@ const FillFormFlow = () => {
       setStage('success');
     } catch (error) {
       console.error('Failed to submit response', error);
+      toast.error('Failed to submit response. Please try again.');
     } finally {
       setSubmitting(false);
+      isSubmittingRef.current = false;
     }
   };
 
