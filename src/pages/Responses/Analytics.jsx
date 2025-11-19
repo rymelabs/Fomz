@@ -10,7 +10,7 @@ const Analytics = ({ responses = [], questions = [] }) => {
       {questions.map((question) => {
         const data = analysis.questionAnalysis[question.id];
         return (
-          <Card key={question.id} className="!rounded-2xl border border-gray-100 bg-white/80 backdrop-blur-sm hover:shadow-md transition-all">
+          <Card key={question.id} className="!rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 hover:shadow-md transition-all hover:-translate-y-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">{question.type}</h4>
             <h3 className="text-lg font-display text-gray-900 mb-4">{question.label}</h3>
             {data?.type === 'distribution' && (

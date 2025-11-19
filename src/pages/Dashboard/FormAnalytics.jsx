@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import { getUserForms } from '../../services/formService';
 import { getFormResponses } from '../../services/responseService';
 import ResponseAnalytics from '../../pages/Responses/Analytics';
+import { TimelineChart, DeviceStats, ResponsePatterns } from '../../components/analytics/AnalyticsCharts';
 import { useUserStore } from '../../store/userStore';
 
 const FormAnalytics = () => {
@@ -148,9 +149,10 @@ const FormAnalytics = () => {
             <p className="text-gray-500">Analytics & Insights</p>
           </div>
         </div>
-        <div className="flex gap-3">
-           {/* Actions like Export could go here */}
-        </div>
+      </div>
+
+      <div className="animate-slide-up" style={{ animationDelay: '150ms' }}>
+        <TimelineChart responses={responses} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3 animate-slide-up" style={{ animationDelay: '200ms' }}>
@@ -172,6 +174,9 @@ const FormAnalytics = () => {
               </div>
             </div>
           </div>
+
+          <DeviceStats responses={responses} />
+          <ResponsePatterns responses={responses} />
 
           {/* Recent Submissions Card */}
           <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur max-h-[500px] overflow-y-auto custom-scrollbar transition-all hover:shadow-md">
@@ -225,7 +230,7 @@ const FormAnalytics = () => {
         {/* Right Column: Question Analysis */}
         <div className="lg:col-span-2 space-y-6">
           {form.questions && (
-            <div className="rounded-3xl border border-gray-200/80 bg-white/60 p-6 backdrop-blur transition-all hover:shadow-md">
+            <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur transition-all hover:shadow-md">
               <h3 className="font-display text-2xl text-gray-900 mb-6">Question Analysis</h3>
               <ResponseAnalytics responses={responses} questions={form.questions} />
             </div>
@@ -289,14 +294,19 @@ const FormAnalytics = () => {
       </div>
 
       {/* Download Button */}
-      <div className="flex justify-center pb-8 animate-slide-up" style={{ animationDelay: '400ms' }}>
+      <div className="flex justify-center pb-12 animate-slide-up" style={{ animationDelay: '400ms' }}>
         <button
           onClick={downloadCSV}
           disabled={responses.length === 0}
-          className="inline-flex items-center gap-2 rounded-full bg-green-600 px-6 py-3 font-display text-white transition-all hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 duration-200"
+          className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-gray-900 px-8 py-4 font-display text-lg text-white transition-all hover:shadow-2xl hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
         >
-          <span className="text-xl">↓</span>
-          Download Responses (CSV)
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <span className="relative flex items-center gap-3">
+            <svg className="h-6 w-6 transition-transform group-hover:translate-y-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download All Responses
+          </span>
         </button>
       </div>
 
