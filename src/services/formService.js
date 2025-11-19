@@ -9,7 +9,8 @@ import {
   query, 
   where, 
   orderBy,
-  serverTimestamp 
+  serverTimestamp,
+  getCountFromServer
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -149,11 +150,21 @@ export const getUserForms = async (userId) => {
     );
     
     const querySnapshot = await getDocs(q);
-    const forms = [];
     
-    querySnapshot.forEach((doc) => {
-      forms.push({ id: doc.id, ...doc.data() });
-    });
+    const forms = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
+      const formData = { id: docSnapshot.id, ...docSnapshot.data() };
+      
+      try {
+        const coll = collection(db, FORMS_COLLECTION, docSnapshot.id, 'responses');
+        const snapshot = await getCountFromServer(coll);
+        formData.responses = snapshot.data().count;
+      } catch (err) {
+        // console.warn(`Failed to get response count for form ${docSnapshot.id}`, err);
+        formData.responses = 0;
+      }
+      
+      return formData;
+    }));
     
     return forms;
   } catch (error) {

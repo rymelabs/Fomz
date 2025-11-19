@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { getUserForms } from '../../services/formService';
-import { getResponseCount } from '../../services/responseService';
 import { useUserStore } from '../../store/userStore';
 
 const DashboardAnalytics = () => {
@@ -22,16 +21,7 @@ const DashboardAnalytics = () => {
       setLoading(true);
       try {
         const data = await getUserForms(user.uid);
-        
-        // Fetch response counts for all forms
-        const formsWithCounts = await Promise.all(
-          data.map(async (form) => {
-            const count = await getResponseCount(form.id);
-            return { ...form, responses: count };
-          })
-        );
-        
-        setForms(formsWithCounts);
+        setForms(data);
       } catch (error) {
         console.error('Failed to load forms for analytics', error);
       } finally {

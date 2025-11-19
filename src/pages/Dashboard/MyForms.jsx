@@ -93,13 +93,13 @@ const MyForms = () => {
     <div className="space-y-12">
       <div className="flex flex-col gap-4">
         <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
-        <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.4em] text-gray-500">
-          <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-4 py-2 font-semibold text-gray-900 transition-all active:scale-95" onClick={() => navigate('/dashboard/create')}>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-900 text-base transition-colors group-hover:border-white">+</span>
+        <div className="flex flex-wrap gap-3 text-xs uppercase tracking-normal text-gray-500">
+          <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-2 py-1.5 text-sm font-semibold text-gray-900 transition-all active:scale-95" onClick={() => navigate('/dashboard/create')}>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-900 text-sm transition-colors group-hover:border-white">+</span>
             Create a form
           </button>
-          <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-gray-600 transition-all active:scale-95" onClick={() => navigate('/dashboard/analytics')}>
-            <BarChart3 className="h-4 w-4" />
+          <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-2 py-1.5 text-sm text-gray-600 transition-all active:scale-95" onClick={() => navigate('/dashboard/analytics')}>
+            <BarChart3 className="h-3 w-3" />
             View analytics
           </button>
         </div>
