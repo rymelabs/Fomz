@@ -9,10 +9,11 @@ import Button from '../ui/Button';
 const FormSettings = () => {
   const { settings, updateSettings, id, shareId } = useFormBuilderStore((state) => ({
     settings: state.settings,
-    updateSettings: state.updateSettings
+    updateSettings: state.updateSettings,
+    id: state.id,
+    shareId: state.shareId
   }));
-  const { saveForm } = useFormBuilder();
-  const { publishForm } = useFormBuilder();
+  const { saveForm, publishForm } = useFormBuilder();
 
   const handleCopyLink = async () => {
     if (!id) {
@@ -47,14 +48,31 @@ const FormSettings = () => {
 
   const handleShare = async () => {
     try {
+      let currentShareId = shareId;
+      let currentId = id;
+
       if (!settings.published) {
-        await publishForm();
+        const result = await publishForm();
+        currentShareId = result.shareId;
+        currentId = result.id;
       } else {
-        await saveForm();
+        const savedId = await saveForm();
+        currentId = savedId;
       }
-      // After publish/save, copy link
-      const newShareId = shareId || id;
-      const link = shareId ? `${window.location.origin}/f/${shareId}` : `${window.location.origin}/forms/${id}/fill`;
+      
+      // Use the updated values if available, otherwise fall back to state values
+      // Note: shareId might still be undefined if saveForm didn't return it (it only returns id)
+      // But if it's published, shareId should be in the store.
+      // If we just saved a published form, shareId shouldn't change.
+      
+      const finalShareId = currentShareId || shareId;
+      const finalId = currentId || id;
+
+      if (!finalId && !finalShareId) {
+        throw new Error('Could not determine form ID');
+      }
+
+      const link = finalShareId ? `${window.location.origin}/f/${finalShareId}` : `${window.location.origin}/forms/${finalId}/fill`;
       await navigator.clipboard.writeText(link);
       toast.success('Share link copied to clipboard');
     } catch (err) {
