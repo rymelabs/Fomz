@@ -10,9 +10,9 @@ const Analytics = ({ responses = [], questions = [] }) => {
       {questions.map((question) => {
         const data = analysis.questionAnalysis[question.id];
         return (
-          <Card key={question.id} className="!rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-6 hover:shadow-md transition-all hover:-translate-y-1">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">{question.type}</h4>
-            <h3 className="text-lg font-display text-gray-900 mb-4">{question.label}</h3>
+          <Card key={question.id} className="!rounded-3xl border border-gray-200/80 bg-white/80 backdrop-blur p-5 transition-all">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">{question.type}</h4>
+            <h3 className="text-base font-display text-gray-900 mb-3">{question.label}</h3>
             {data?.type === 'distribution' && (
               <div className="mt-4 space-y-3">
                 {Object.entries(data.counts).map(([option, count]) => (

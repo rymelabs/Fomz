@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 
 const ChartCard = ({ title, children, className = '' }) => (
-  <div className={`rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur ${className}`}>
-    <h3 className="font-display text-lg text-gray-900 mb-6">{title}</h3>
+  <div className={`rounded-3xl border border-gray-200/80 bg-white/80 p-5 backdrop-blur ${className}`}>
+    <h3 className="font-display text-base text-gray-900 mb-4">{title}</h3>
     {children}
   </div>
 );

@@ -154,8 +154,8 @@ const FormAnalytics = () => {
             ←
           </button>
           <div>
-            <h1 className="font-display text-3xl text-gray-900 md:text-4xl">{form.title}</h1>
-            <p className="text-gray-500">Analytics & Insights</p>
+            <h1 className="font-display text-2xl text-gray-900 md:text-3xl">{form.title}</h1>
+            <p className="text-sm text-gray-500">Analytics & Insights</p>
           </div>
         </div>
       </div>
@@ -168,18 +168,18 @@ const FormAnalytics = () => {
         {/* Left Column: Stats & Recent - Sticky on Desktop */}
         <div className="space-y-6 lg:col-span-1">
           {/* Key Stats Card */}
-          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur transition-all hover:shadow-md hover:-translate-y-1">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold">Total Responses</p>
-            <p className="mt-2 font-display text-5xl text-gray-900">{stats.totalResponses}</p>
+          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-5 backdrop-blur transition-all">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-semibold">Total Responses</p>
+            <p className="mt-2 font-display text-4xl text-gray-900">{stats.totalResponses}</p>
             
-            <div className="mt-6 space-y-4 border-t border-gray-100 pt-4">
+            <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
               <div>
-                <p className="text-xs text-gray-400">Last Submission</p>
-                <p className="font-medium text-gray-700">{formatDate(stats.lastResponse)}</p>
+                <p className="text-[10px] text-gray-400">Last Submission</p>
+                <p className="text-sm font-medium text-gray-700">{formatDate(stats.lastResponse)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">First Submission</p>
-                <p className="font-medium text-gray-700">{formatDate(stats.firstResponse)}</p>
+                <p className="text-[10px] text-gray-400">First Submission</p>
+                <p className="text-sm font-medium text-gray-700">{formatDate(stats.firstResponse)}</p>
               </div>
             </div>
           </div>
@@ -188,8 +188,8 @@ const FormAnalytics = () => {
           <ResponsePatterns responses={responses} />
 
           {/* Recent Submissions Card */}
-          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur max-h-[500px] overflow-y-auto custom-scrollbar transition-all hover:shadow-md">
-            <h3 className="font-display text-xl text-gray-900 mb-4">Recent Activity</h3>
+          <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-5 backdrop-blur max-h-[500px] overflow-y-auto custom-scrollbar transition-all">
+            <h3 className="font-display text-lg text-gray-900 mb-4">Recent Activity</h3>
             {responseLoading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
@@ -239,8 +239,8 @@ const FormAnalytics = () => {
         {/* Right Column: Question Analysis */}
         <div className="lg:col-span-2 space-y-6">
           {form.questions && (
-            <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur transition-all hover:shadow-md">
-              <h3 className="font-display text-2xl text-gray-900 mb-6">Question Analysis</h3>
+            <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-5 backdrop-blur transition-all">
+              <h3 className="font-display text-xl text-gray-900 mb-4">Question Analysis</h3>
               <ResponseAnalytics responses={responses} questions={form.questions} />
             </div>
           )}
@@ -248,10 +248,10 @@ const FormAnalytics = () => {
       </div>
 
       {/* All Responses Table */}
-      <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-6 backdrop-blur overflow-hidden animate-slide-up transition-all hover:shadow-md" style={{ animationDelay: '300ms' }}>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="font-display text-2xl text-gray-900">All Responses</h3>
-          <div className="text-sm text-gray-500">
+      <div className="rounded-3xl border border-gray-200/80 bg-white/80 p-5 backdrop-blur overflow-hidden animate-slide-up transition-all" style={{ animationDelay: '300ms' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-xl text-gray-900">All Responses</h3>
+          <div className="text-xs text-gray-500">
             {responses.length} total
           </div>
         </div>
