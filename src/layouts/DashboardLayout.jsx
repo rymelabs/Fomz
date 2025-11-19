@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileEdit, BarChart3, LogOut, User2 } from 'lucide-react';
+import { LayoutDashboard, FileEdit, BarChart3, LogOut, User2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const navItems = [
@@ -12,6 +12,19 @@ const navItems = [
 const DashboardLayout = ({ children }) => {
   const { user, loading, signInGoogle, logout } = useAuth();
   const location = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
@@ -46,18 +59,31 @@ const DashboardLayout = ({ children }) => {
             </nav>
             <div className="flex items-center gap-4">
               {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white text-sm font-semibold text-gray-700">
-                    {user.displayName?.[0]?.toUpperCase() || <User2 className="h-4 w-4" />}
-                  </div>
+                <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={logout}
-                    disabled={loading}
-                    className="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-gray-500 hover:text-gray-900"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 rounded-full border border-gray-300 bg-white p-1 hover:bg-gray-50 transition-colors"
                   >
-                    <LogOut className="h-4 w-4" />
-                    {loading ? 'Signing out' : 'Log out'}
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
+                      {user.displayName?.[0]?.toUpperCase() || <User2 className="h-4 w-4" />}
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
                   </button>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsDropdownOpen(false);
+                        }}
+                        disabled={loading}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        {loading ? 'Signing out...' : 'Log out'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <button
