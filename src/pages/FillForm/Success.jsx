@@ -2,7 +2,7 @@ import React from 'react';
 import FormShell from '../../components/fill/FormShell';
 import { useTheme } from '../../hooks/useTheme';
 
-const Success = ({ title, description, onSubmitAnother, logoUrl, form }) => {
+const Success = ({ title, description, onSubmitAnother, logoUrl, form, allowResubmit = true }) => {
   const { themeData } = useTheme();
   const accent = themeData?.primaryColor || '#2563eb';
 
@@ -18,15 +18,18 @@ const Success = ({ title, description, onSubmitAnother, logoUrl, form }) => {
           <p className="mt-2 text-gray-600 animate-text-enter" style={{ animationDelay: '0.2s' }}>Your response has been recorded.</p>
           {title && <p className="mt-4 text-sm text-gray-500 animate-text-enter" style={{ animationDelay: '0.3s' }}>Form: {title}</p>}
           {description && <p className="text-xs text-gray-500 animate-text-enter" style={{ animationDelay: '0.3s' }}>{description}</p>}
-          <div className="animate-text-enter" style={{ animationDelay: '0.4s' }}>
-            <button
-              className="mt-10 inline-flex items-center justify-center rounded-full px-10 py-3 font-sans text-lg text-white"
-              style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
-              onClick={onSubmitAnother}
-            >
-              Submit another response
-            </button>
-          </div>
+          
+          {allowResubmit && (
+            <div className="animate-text-enter" style={{ animationDelay: '0.4s' }}>
+              <button
+                className="mt-10 inline-flex items-center justify-center rounded-full px-10 py-3 font-sans text-lg text-white"
+                style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
+                onClick={onSubmitAnother}
+              >
+                Submit another response
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </FormShell>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FormShell from '../../components/fill/FormShell';
 import ShortText from '../../components/forms/ShortText';
 import LongText from '../../components/forms/LongText';
@@ -10,6 +10,7 @@ import DateInput from '../../components/forms/DateInput';
 import NumberInput from '../../components/forms/NumberInput';
 import EmailInput from '../../components/forms/EmailInput';
 import { useTheme } from '../../hooks/useTheme';
+import toast from 'react-hot-toast';
 
 const componentMap = {
   'short-text': ShortText,
@@ -43,9 +44,22 @@ const QuestionStep = ({
   const Component = componentMap[question.type] || ShortText;
   const { themeData } = useTheme();
   const accent = themeData?.primaryColor || '#2563eb';
+  const [error, setError] = useState(null);
   
   const animationClass = direction === 'forward' ? 'animate-slide-in-right' : 'animate-slide-in-left';
   
+  const handleNext = () => {
+    if (question.required) {
+      if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+        setError('This question is required');
+        toast.error('Please answer this question');
+        return;
+      }
+    }
+    setError(null);
+    onNext();
+  };
+
   // Calculate progress based on sections
   let progressPercent = 0;
   if (totalSections > 1) {
@@ -61,7 +75,7 @@ const QuestionStep = ({
   }
 
   return (
-    <FormShell showProgress progressPercent={progressPercent} form={form}>
+    <FormShell showProgress={form?.settings?.showProgressBar !== false} progressPercent={progressPercent} form={form}>
       <div 
         key={question.id}
         className={`relative overflow-hidden rounded-[32px] border border-white bg-white/20 backdrop-blur-md p-10 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
@@ -89,16 +103,20 @@ const QuestionStep = ({
               <Component
                 question={question}
                 value={value}
-                onChange={onChange}
+                onChange={(val) => {
+                  onChange(val);
+                  if (error) setError(null);
+                }}
               />
+              {error && <p className="mt-2 text-sm text-red-500 animate-shake">{error}</p>}
             </div>
           </div>
 
           <div className="mt-16 flex flex-col items-center gap-3 animate-text-enter" style={{ animationDelay: '0.3s' }}>
             <button
-              className="w-full max-w-sm rounded-full px-8 py-3 font-sans text-lg text-white font-light"
+              className="w-full max-w-sm rounded-full px-8 py-3 font-sans text-lg text-white font-light transition-transform active:scale-95"
               style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
-              onClick={onNext}
+              onClick={handleNext}
             >
               {questionIndex === total - 1 ? 'Review' : 'Next'}
             </button>

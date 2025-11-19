@@ -7,6 +7,9 @@ import Success from './Success';
 import { getForm } from '../../services/formService';
 import { submitResponse } from '../../services/responseService';
 import { useThemeStore } from '../../store/themeStore';
+import { useUserStore } from '../../store/userStore';
+import { useAuth } from '../../hooks/useAuth';
+import Button from '../../components/ui/Button';
 
 const FillFormFlow = () => {
   const { formId } = useParams();
@@ -18,6 +21,8 @@ const FillFormFlow = () => {
   const [submitting, setSubmitting] = useState(false);
   const [direction, setDirection] = useState('forward');
   const setTheme = useThemeStore((state) => state.setTheme);
+  const { user } = useUserStore();
+  const { signInGoogle } = useAuth();
 
   useEffect(() => {
     const loadForm = async () => {
@@ -40,6 +45,18 @@ const FillFormFlow = () => {
 
   if (!form) {
     return <p className="text-center py-20 text-gray-500">Loading form...</p>;
+  }
+
+  if (form.settings?.requireLogin && !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-2xl shadow-sm max-w-md mx-4">
+          <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">Sign in required</h2>
+          <p className="text-gray-600 mb-6">This form requires you to be signed in to respond.</p>
+          <Button onClick={signInGoogle}>Sign in with Google</Button>
+        </div>
+      </div>
+    );
   }
 
   const sections = form.sections || [];
@@ -138,7 +155,13 @@ const FillFormFlow = () => {
           value: answers[question.id] ?? null,
         })),
       };
-      await submitResponse(formId, payload);
+      await submitResponse(formId, payload, user?.uid);
+      
+      if (form.settings?.redirectUrl) {
+        window.location.href = form.settings.redirectUrl;
+        return;
+      }
+
       setStage('success');
     } catch (error) {
       console.error('Failed to submit response', error);
@@ -211,6 +234,7 @@ const FillFormFlow = () => {
         setStage('start');
       }}
       form={form}
+      allowResubmit={form.settings?.allowMultipleSubmissions !== false}
     />
   );
 };
