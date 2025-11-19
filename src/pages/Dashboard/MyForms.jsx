@@ -77,7 +77,7 @@ const MyForms = () => {
   if (!user) {
     return (
       <div className="py-24 text-center">
-        <p className="font-display text-4xl text-gray-900">Welcome to fomz</p>
+        <p className="font-display text-2xl text-gray-900">Welcome to fomz</p>
         <p className="mt-3 text-gray-600">Sign in to create and manage your forms.</p>
         <button
           className="mt-8 inline-flex items-center rounded-full border border-gray-900 px-10 py-3 font-display text-lg text-gray-900 transition-all hover:bg-gray-900 hover:text-white hover:scale-105 active:scale-95"
@@ -92,7 +92,7 @@ const MyForms = () => {
   return (
     <div className="space-y-12">
       <div className="flex flex-col gap-4">
-        <p className="font-display text-4xl text-gray-900">My Forms</p>
+        <p className="font-display text-2xl text-gray-900">My Forms</p>
         <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.4em] text-gray-500">
           <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-4 py-2 font-semibold text-gray-900 transition-all hover:bg-gray-900 hover:text-white active:scale-95" onClick={() => navigate('/dashboard/create')}>
             <span className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-900 text-base transition-colors group-hover:border-white">+</span>

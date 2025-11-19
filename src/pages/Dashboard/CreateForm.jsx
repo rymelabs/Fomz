@@ -23,7 +23,7 @@ const CreateForm = () => {
           <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition group-hover:border-gray-900 group-hover:scale-110">←</span>
           Back to dashboard
         </button>
-        <h1 className="font-display text-4xl text-gray-900">Create a new form</h1>
+        <h1 className="font-display text-2xl text-gray-900">Create a new form</h1>
         <p className="mt-2 text-gray-600">Start by giving your form a name and description.</p>
       </div>
 

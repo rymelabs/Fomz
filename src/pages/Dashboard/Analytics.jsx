@@ -44,8 +44,8 @@ const DashboardAnalytics = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-2 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        <p className="font-display text-3xl text-gray-900">Analytics</p>
-        <p className="text-gray-600">Track performance and insights for your forms.</p>
+        <p className="font-display text-2xl text-gray-900 font-bold">Analytics</p>
+        <p className="text-gray-600 text-xs">Track performance and insights for your forms.</p>
       </div>
       {loading ? (
         <div className="flex justify-center py-20">
@@ -73,12 +73,12 @@ const DashboardAnalytics = () => {
         </div>
       ) : (
         <div className="space-y-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
-          <p className="font-display text-2xl text-gray-900">Your forms</p>
+          <p className="font-display text-lg text-gray-900">Your forms</p>
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
             {forms.map((form, index) => (
               <div
                 key={form.id}
-                className="aspect-square rounded-xl border border-gray-200/90 p-3 transition-all duration-200 cursor-pointer hover:shadow-lg hover:border-primary-500 flex flex-col justify-center hover:-translate-y-1 bg-white/10 backdrop-blur animate-card-enter opacity-0"
+                className="aspect-[2/1] rounded-xl border border-gray-200/90 p-3 transition-all duration-200 cursor-pointer hover:shadow-lg hover:border-primary-500 flex flex-col justify-center hover:-translate-y-1 bg-white/10 backdrop-blur animate-card-enter opacity-0"
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                 onClick={() => navigate(`/dashboard/analytics/${form.id}`)}
               >
