@@ -79,6 +79,15 @@ const FormAnalytics = () => {
     return new Date(date).toLocaleString();
   };
 
+  const getAnswerValue = (response, questionId) => {
+    if (!response?.answers) return null;
+    if (Array.isArray(response.answers)) {
+      const found = response.answers.find(a => a.questionId === questionId);
+      return found ? found.value : null;
+    }
+    return response.answers[questionId];
+  };
+
   const downloadCSV = () => {
     if (!responses.length || !form) return;
 
@@ -89,7 +98,7 @@ const FormAnalytics = () => {
     const rows = responses.map(response => {
       const date = new Date(response.submittedAt).toLocaleString();
       const answers = form.questions.map(q => {
-        const answer = response.answers?.[q.id];
+        const answer = getAnswerValue(response, q.id);
         let formattedAnswer = '';
         if (Array.isArray(answer)) {
           formattedAnswer = answer.join(', ');
@@ -197,7 +206,7 @@ const FormAnalytics = () => {
                     </div>
                     <div className="space-y-2 mb-3">
                       {form.questions?.slice(0, 2).map((question) => {
-                        const answer = response.answers?.[question.id];
+                        const answer = getAnswerValue(response, question.id);
                         return (
                           <div key={question.id} className="text-xs">
                             <span className="font-medium text-gray-700">{question.label}:</span>
@@ -270,7 +279,7 @@ const FormAnalytics = () => {
                       {new Date(response.submittedAt).toLocaleString()}
                     </td>
                     {form.questions?.map((q) => {
-                      const answer = response.answers?.[q.id];
+                      const answer = getAnswerValue(response, q.id);
                       return (
                         <td key={q.id} className="px-4 py-3 max-w-[200px] truncate text-gray-600">
                           {Array.isArray(answer) ? answer.join(', ') : answer?.toString() || '—'}
@@ -326,7 +335,7 @@ const FormAnalytics = () => {
             <div className="space-y-4">
               <p className="text-sm text-gray-500">Submitted: {new Date(selectedResponse.submittedAt).toLocaleString()}</p>
               {form.questions?.map((question) => {
-                const answer = selectedResponse.answers?.[question.id];
+                const answer = getAnswerValue(selectedResponse, question.id);
                 return (
                   <div key={question.id} className="rounded-xl bg-gray-50 p-4">
                     <h4 className="font-medium text-gray-900 mb-2">{question.label}</h4>
