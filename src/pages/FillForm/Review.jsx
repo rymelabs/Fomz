@@ -8,7 +8,7 @@ const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
 
   return (
     <FormShell showProgress progressPercent={100} form={form}>
-      <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/50 backdrop-blur-md px-8 py-10 shadow-[var(--fomz-card-shadow)] animate-slide-in-right">
+      <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/50 backdrop-blur-md px-8 py-10 shadow-[var(--fomz-card-shadow)] animate-slide-in-left">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white via-white/70 to-transparent opacity-80"></div>
         <div className="relative space-y-6">
           <div className="animate-text-enter">

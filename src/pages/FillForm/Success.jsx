@@ -8,7 +8,7 @@ const Success = ({ title, description, onSubmitAnother, logoUrl, form, allowResu
 
   return (
     <FormShell form={form}>
-      <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/50 backdrop-blur-md px-10 py-14 text-center shadow-[var(--fomz-card-shadow)] animate-slide-in-right">
+      <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/50 backdrop-blur-md px-10 py-14 text-center shadow-[var(--fomz-card-shadow)] animate-slide-in-left">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white via-white/70 to-transparent opacity-80"></div>
         <div className="relative">
           <div className="mx-auto h-20 w-20 rounded-full border-2 border-white/70 bg-white/90 flex items-center justify-center text-4xl animate-text-enter" style={{ color: accent }}>

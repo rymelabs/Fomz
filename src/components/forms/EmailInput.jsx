@@ -17,6 +17,7 @@ const EmailInput = ({
       error={error}
       disabled={disabled}
       required={question.required}
+      style={{ borderRadius: '9999px' }}
     />
   );
 };

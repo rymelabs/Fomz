@@ -20,6 +20,7 @@ const ShortText = ({
       minLength={question.validation?.min}
       maxLength={question.validation?.max}
       pattern={question.validation?.pattern}
+      style={{ borderRadius: '9999px' }}
     />
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Start from './Start';
 import QuestionStep from './QuestionStep';
@@ -12,12 +12,34 @@ import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 
+const DEFAULT_SECTION_KEY = '__default';
+const PAIRED_TYPES = new Set(['short-text', 'email']);
+
+const canPair = (question) => PAIRED_TYPES.has(question?.type);
+
+const buildCards = (questionList = []) => {
+  const cards = [];
+  let index = 0;
+  while (index < questionList.length) {
+    const current = questionList[index];
+    const next = questionList[index + 1];
+    if (current && next && canPair(current) && canPair(next)) {
+      cards.push([current, next]);
+      index += 2;
+    } else {
+      cards.push([current]);
+      index += 1;
+    }
+  }
+  return cards.filter((card) => card.length);
+};
+
 const FillFormFlow = () => {
   const { formId } = useParams();
   const [form, setForm] = useState(null);
   const [stage, setStage] = useState('start');
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [direction, setDirection] = useState('forward');
@@ -45,6 +67,122 @@ const FillFormFlow = () => {
     loadForm();
   }, [formId, setTheme]);
 
+  const sections = form?.sections || [];
+  const questions = form?.questions || [];
+
+  const hasSections = sections.length > 0;
+  const questionsBySection = useMemo(() => {
+    if (!hasSections) return {};
+    return sections.reduce((acc, section) => {
+      acc[section.id] = questions.filter((q) => q.sectionId === section.id);
+      return acc;
+    }, {});
+  }, [hasSections, sections, questions]);
+
+  const cardsBySection = useMemo(() => {
+    if (hasSections) {
+      return sections.reduce((acc, section) => {
+        acc[section.id] = buildCards(questionsBySection[section.id] || []);
+        return acc;
+      }, {});
+    }
+    return { [DEFAULT_SECTION_KEY]: buildCards(questions) };
+  }, [hasSections, sections, questions, questionsBySection]);
+
+  const questionLocationMap = useMemo(() => {
+    const map = {};
+    if (hasSections) {
+      sections.forEach((section, sectionIdx) => {
+        const cards = cardsBySection[section.id] || [];
+        cards.forEach((card, cardIdx) => {
+          card.forEach((question) => {
+            if (question?.id) {
+              map[question.id] = { sectionIdx, cardIdx };
+            }
+          });
+        });
+      });
+    } else {
+      const cards = cardsBySection[DEFAULT_SECTION_KEY] || [];
+      cards.forEach((card, cardIdx) => {
+        card.forEach((question) => {
+          if (question?.id) {
+            map[question.id] = { sectionIdx: 0, cardIdx };
+          }
+        });
+      });
+    }
+    return map;
+  }, [cardsBySection, hasSections, sections]);
+
+  const currentSection = hasSections ? sections[currentSectionIndex] : null;
+  const sectionQuestions = hasSections
+    ? questionsBySection[currentSection?.id] || []
+    : questions;
+  const currentSectionCards = hasSections
+    ? cardsBySection[currentSection?.id] || []
+    : cardsBySection[DEFAULT_SECTION_KEY] || [];
+  const currentCardQuestions = currentSectionCards[currentCardIndex] || [];
+  const totalSections = hasSections ? sections.length : 1;
+  const isFirstCard = currentSectionIndex === 0 && currentCardIndex === 0;
+  const hasMoreCardsInSection = currentCardIndex < currentSectionCards.length - 1;
+  const hasMoreSectionsAhead = hasSections
+    ? sections.slice(currentSectionIndex + 1).some((section) => {
+        const cards = cardsBySection[section.id] || [];
+        return cards.length > 0;
+      })
+    : false;
+  const isLastCard = !hasMoreCardsInSection && !hasMoreSectionsAhead;
+  const questionsBeforeCurrentSection = hasSections
+    ? sections.slice(0, currentSectionIndex).reduce((sum, section) => {
+        const sectionQs = questionsBySection[section.id] || [];
+        return sum + sectionQs.length;
+      }, 0)
+    : 0;
+  const answeredInCurrentSection = currentSectionCards
+    .slice(0, currentCardIndex)
+    .reduce((sum, card) => sum + card.length, 0);
+  const completedQuestionsInSection = Math.min(
+    answeredInCurrentSection + currentCardQuestions.length,
+    sectionQuestions.length
+  );
+  const totalQuestionsCount = questions.length || 1;
+  const progressPercent =
+    totalQuestionsCount > 0
+      ? ((questionsBeforeCurrentSection + completedQuestionsInSection) / totalQuestionsCount) * 100
+      : 0;
+
+  useEffect(() => {
+    if (currentSectionCards.length === 0) {
+      if (hasSections) {
+        for (let idx = currentSectionIndex + 1; idx < sections.length; idx++) {
+          const cards = cardsBySection[sections[idx].id] || [];
+          if (cards.length > 0) {
+            setCurrentSectionIndex(idx);
+            setCurrentCardIndex(0);
+            return;
+          }
+        }
+      }
+
+      if (currentCardIndex !== 0) {
+        setCurrentCardIndex(0);
+      }
+      return;
+    }
+
+    if (currentCardIndex > currentSectionCards.length - 1) {
+      setCurrentCardIndex(currentSectionCards.length - 1);
+    }
+  }, [
+    cardsBySection,
+    currentCardIndex,
+    currentSectionCards,
+    currentSectionIndex,
+    hasSections,
+    sections
+  ]);
+
   if (!form) {
     return <p className="text-center py-20 text-gray-500">Loading form...</p>;
   }
@@ -61,58 +199,52 @@ const FillFormFlow = () => {
     );
   }
 
-  const sections = form.sections || [];
-  const questions = form.questions || [];
-  
-  // If no sections, treat all questions as one section
-  const hasSections = sections.length > 0;
-  const currentSection = hasSections ? sections[currentSectionIndex] : null;
-  const sectionQuestions = hasSections 
-    ? questions.filter(q => q.sectionId === currentSection?.id)
-    : questions;
-  
-  const currentQuestion = sectionQuestions[currentQuestionIndex];
-  const totalSections = hasSections ? sections.length : 1;
-  const currentSectionProgress = hasSections ? currentSectionIndex : 0;
-
-  const handleAnswerChange = (value) => {
+  const handleAnswerChange = (questionId, value) => {
     setAnswers((prev) => ({
       ...prev,
-      [currentQuestion.id]: value,
+      [questionId]: value,
     }));
-  };
-
-  const goToReview = () => {
-    setDirection('forward');
-    setStage('review');
   };
 
   const handleNext = () => {
     setDirection('forward');
-    if (currentQuestionIndex < sectionQuestions.length - 1) {
-      // Next question in current section
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else if (hasSections && currentSectionIndex < sections.length - 1) {
-      // Next section
-      setCurrentSectionIndex(currentSectionIndex + 1);
-      setCurrentQuestionIndex(0);
-    } else {
-      // End of form
-      goToReview();
+    const nextCardIndex = currentCardIndex + 1;
+    if (nextCardIndex < currentSectionCards.length) {
+      setCurrentCardIndex(nextCardIndex);
+      return;
     }
+
+    if (hasSections) {
+      for (let idx = currentSectionIndex + 1; idx < sections.length; idx++) {
+        const cards = cardsBySection[sections[idx].id] || [];
+        if (cards.length > 0) {
+          setCurrentSectionIndex(idx);
+          setCurrentCardIndex(0);
+          return;
+        }
+      }
+    }
+
+    goToReview();
   };
 
   const handlePrevious = () => {
+    if (isFirstCard) return;
     setDirection('backward');
-    if (currentQuestionIndex > 0) {
-      // Previous question in current section
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else if (hasSections && currentSectionIndex > 0) {
-      // Previous section
-      setCurrentSectionIndex(currentSectionIndex - 1);
-      const prevSection = sections[currentSectionIndex - 1];
-      const prevSectionQuestions = questions.filter(q => q.sectionId === prevSection.id);
-      setCurrentQuestionIndex(prevSectionQuestions.length - 1);
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+      return;
+    }
+
+    if (hasSections && currentSectionIndex > 0) {
+      for (let idx = currentSectionIndex - 1; idx >= 0; idx--) {
+        const cards = cardsBySection[sections[idx].id] || [];
+        if (cards.length > 0) {
+          setCurrentSectionIndex(idx);
+          setCurrentCardIndex(cards.length - 1);
+          return;
+        }
+      }
     }
   };
 
@@ -122,37 +254,23 @@ const FillFormFlow = () => {
       setStage('question');
       return;
     }
-    const index = questions.findIndex((q) => q.id === questionId);
-    if (index !== -1) {
-      // Find which section and question index this corresponds to
-      let totalQuestions = 0;
-      for (let sectionIdx = 0; sectionIdx < sections.length; sectionIdx++) {
-        const section = sections[sectionIdx];
-        const sectionQs = questions.filter(q => q.sectionId === section.id);
-        if (index < totalQuestions + sectionQs.length) {
-          setCurrentSectionIndex(sectionIdx);
-          setCurrentQuestionIndex(index - totalQuestions);
-          setStage('question');
-          return;
-        }
-        totalQuestions += sectionQs.length;
-      }
-      // Fallback for questions not in sections
-      const nonSectionQuestions = questions.filter(q => !q.sectionId);
-      if (index >= totalQuestions && index < totalQuestions + nonSectionQuestions.length) {
-        setCurrentSectionIndex(sections.length);
-        setCurrentQuestionIndex(index - totalQuestions);
-        setStage('question');
-      }
+
+    const location = questionLocationMap[questionId];
+    if (!location) return;
+
+    if (hasSections) {
+      setCurrentSectionIndex(location.sectionIdx);
     }
+
+    setCurrentCardIndex(location.cardIdx);
+    setStage('question');
   };
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!formId || submitting || isSubmittingRef.current) return;
 
-    // Validate required fields
-    const firstMissing = questions.find(q => {
+    const firstMissing = questions.find((q) => {
       if (!q.required) return false;
       const val = answers[q.id];
       return val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0);
@@ -174,7 +292,7 @@ const FillFormFlow = () => {
         })),
       };
       await submitResponse(formId, payload, user?.uid);
-      
+
       if (form.settings?.redirectUrl) {
         window.location.href = form.settings.redirectUrl;
         return;
@@ -196,14 +314,18 @@ const FillFormFlow = () => {
         title={form.title}
         description={form.description}
         logoUrl={form.logoUrl}
-        onBegin={() => setStage('question')}
+        onBegin={() => {
+          setCurrentSectionIndex(0);
+          setCurrentCardIndex(0);
+          setStage('question');
+        }}
         form={form}
       />
     );
   }
 
   if (stage === 'question') {
-    if (!currentQuestion) {
+    if (!currentCardQuestions.length) {
       return (
         <p className="text-center py-20 text-gray-500">
           This form does not have any questions yet.
@@ -212,19 +334,19 @@ const FillFormFlow = () => {
     }
     return (
       <QuestionStep
-        question={currentQuestion}
+        questions={currentCardQuestions}
         section={currentSection}
         sectionIndex={currentSectionIndex}
-        questionIndex={currentQuestionIndex}
-        total={sectionQuestions.length}
         totalSections={totalSections}
-        sectionProgress={currentSectionProgress}
-        value={answers[currentQuestion.id]}
-        onChange={handleAnswerChange}
         form={form}
+        answers={answers}
+        onChange={handleAnswerChange}
         onNext={handleNext}
         onPrevious={handlePrevious}
         direction={direction}
+        isFirstCard={isFirstCard}
+        isLastCard={isLastCard}
+        progressPercent={progressPercent}
       />
     );
   }
@@ -249,7 +371,7 @@ const FillFormFlow = () => {
       logoUrl={form.logoUrl}
       onSubmitAnother={() => {
         setAnswers({});
-        setCurrentQuestionIndex(0);
+        setCurrentCardIndex(0);
         setCurrentSectionIndex(0);
         setStage('start');
       }}

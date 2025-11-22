@@ -7,7 +7,7 @@ const Start = ({ title, description, onBegin, logoUrl, form }) => {
   const accent = themeData?.primaryColor || '#2563eb';
 
   return (
-    <FormShell form={form}>
+    <FormShell form={form} showHeader={false}>
       <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/50 backdrop-blur-md px-10 py-14 shadow-[var(--fomz-card-shadow)] animate-card-enter">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white via-white/70 to-transparent opacity-80"></div>
         <div className="relative text-center">

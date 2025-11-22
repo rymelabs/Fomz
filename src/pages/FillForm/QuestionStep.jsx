@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FormShell from '../../components/fill/FormShell';
 import ShortText from '../../components/forms/ShortText';
 import LongText from '../../components/forms/LongText';
@@ -26,66 +26,95 @@ const componentMap = {
   'image': ImageBlock
 };
 
-const QuestionStep = ({ 
-  question, 
+const QuestionStep = ({
+  questions = [],
   section,
   sectionIndex,
-  questionIndex,
-  total,
   totalSections,
-  sectionProgress,
-  value, 
-  onChange, 
-  onNext, 
-  onPrevious, 
   form,
-  direction = 'forward'
+  answers,
+  onChange,
+  onNext,
+  onPrevious,
+  direction = 'forward',
+  isFirstCard,
+  isLastCard,
+  progressPercent = 0
 }) => {
-  if (!question) return null;
-
-  const Component = componentMap[question.type] || ShortText;
+  const visibleQuestions = questions.filter(Boolean);
   const { themeData } = useTheme();
   const accent = themeData?.primaryColor || '#2563eb';
-  const [error, setError] = useState(null);
-  
-  const animationClass = direction === 'forward' ? 'animate-slide-in-right' : 'animate-slide-in-left';
-  
-  const handleNext = () => {
-    if (question.required) {
-      if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
-        setError('This question is required');
-        toast.error('Please answer this question');
-        return;
+  const [errors, setErrors] = useState({});
+  const cardKey = visibleQuestions.map((q) => q.id).join('-');
+
+  useEffect(() => {
+    setErrors({});
+  }, [cardKey]);
+
+  if (visibleQuestions.length === 0) {
+    return (
+      <FormShell
+        showProgress={form?.settings?.showProgressBar !== false}
+        progressPercent={progressPercent}
+        form={form}
+      >
+        <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/20 backdrop-blur-md p-10 text-center shadow-[var(--fomz-card-shadow)]">
+          <p className="text-gray-500">No questions available in this section.</p>
+        </div>
+      </FormShell>
+    );
+  }
+
+  const animationClass = direction === 'forward' ? 'animate-slide-in-left' : 'animate-slide-in-right';
+
+  const validateCard = () => {
+    const newErrors = {};
+    visibleQuestions.forEach((question) => {
+      if (!question.required) return;
+      const val = answers[question.id];
+      if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
+        newErrors[question.id] = 'This question is required';
       }
+    });
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please answer required questions');
+      return false;
     }
-    setError(null);
+    setErrors({});
+    return true;
+  };
+
+  const handleNext = () => {
+    if (!validateCard()) return;
     onNext();
   };
 
-  // Calculate progress based on sections
-  let progressPercent = 0;
-  if (totalSections > 1) {
-    // Section-based progress
-    const sectionQuestions = form.questions?.filter(q => q.sectionId === section?.id) || [];
-    const sectionQuestionProgress = sectionQuestions.length > 0 ? (questionIndex + 1) / sectionQuestions.length : 0;
-    progressPercent = ((sectionProgress + sectionQuestionProgress) / totalSections) * 100;
-  } else {
-    // Fallback to question-based progress
-    const totalQuestions = form.questions?.length || 0;
-    const currentQuestionGlobalIndex = form.questions?.findIndex(q => q.id === question.id) || 0;
-    progressPercent = totalQuestions > 0 ? ((currentQuestionGlobalIndex + 1) / totalQuestions) * 100 : 0;
-  }
+  const handleInputChange = (questionId, value) => {
+    onChange(questionId, value);
+    if (errors[questionId]) {
+      setErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[questionId];
+        return updated;
+      });
+    }
+  };
 
   return (
-    <FormShell showProgress={form?.settings?.showProgressBar !== false} progressPercent={progressPercent} form={form}>
-      <div 
-        key={question.id}
+    <FormShell
+      showProgress={form?.settings?.showProgressBar !== false}
+      progressPercent={progressPercent}
+      form={form}
+    >
+      <div
+        key={cardKey}
         className={`relative overflow-hidden rounded-[32px] border border-white bg-white/20 backdrop-blur-md p-10 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
       >
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from white via-white/70 to-transparent opacity-70"></div>
         <div className="relative space-y-12">
           {section && (
-            <div className="pt-2 pb-8 animate-text-enter">
+            <div className="pt-2 pb-8">
               <p className="text-xs uppercase tracking-[0.4em] text-gray-600 font-medium">
                 Section {sectionIndex + 1} of {totalSections}
               </p>
@@ -93,40 +122,54 @@ const QuestionStep = ({
               {section.description && <p className="text-sm text-gray-600 mt-1">{section.description}</p>}
             </div>
           )}
-          
-          <div className="space-y-4">
-            <div className="space-y-3 animate-text-enter" style={{ animationDelay: '0.1s' }}>
-              <p className="text-5xl font-semibold text-gray-500 mb-6">{String(questionIndex + 1).padStart(2, '0')}</p>
-              <p className="font-sans text-2xl text-gray-900">{question.label || 'Untitled question'}</p>
-              {question.helpText && <p className="text-gray-500">{question.helpText}</p>}
-            </div>
 
-            <div className="animate-text-enter" style={{ animationDelay: '0.2s' }}>
-              <Component
-                question={question}
-                value={value}
-                onChange={(val) => {
-                  onChange(val);
-                  if (error) setError(null);
-                }}
-              />
-              {error && <p className="mt-2 text-sm text-red-500 animate-shake">{error}</p>}
-            </div>
+          <div className="space-y-10">
+            {visibleQuestions.map((question) => {
+              const Component = componentMap[question.type] || ShortText;
+              const error = errors[question.id];
+              const value = answers[question.id];
+              const globalIndex = form.questions?.findIndex((q) => q.id === question.id);
+              const questionNumber =
+                globalIndex !== undefined && globalIndex !== -1
+                  ? globalIndex + 1
+                  : visibleQuestions.findIndex((q) => q.id === question.id) + 1;
+
+              return (
+                <div key={question.id} className="space-y-4">
+                  <div className="space-y-3">
+                    <p className="text-5xl font-semibold text-gray-500 mb-6">
+                      {String(questionNumber).padStart(2, '0')}
+                    </p>
+                    <p className="font-sans text-2xl text-gray-900">{question.label || 'Untitled question'}</p>
+                    {question.helpText && <p className="text-gray-500">{question.helpText}</p>}
+                  </div>
+
+                  <div>
+                    <Component
+                      question={question}
+                      value={value}
+                      onChange={(val) => handleInputChange(question.id, val)}
+                    />
+                    {error && <p className="mt-2 text-sm text-red-500 animate-shake">{error}</p>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="mt-16 flex flex-col items-center gap-3 animate-text-enter" style={{ animationDelay: '0.3s' }}>
+          <div className="mt-16 flex flex-col items-center gap-3">
             <button
               className="w-full max-w-sm rounded-full px-8 py-3 font-sans text-lg text-white font-light transition-transform active:scale-95"
               style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
               onClick={handleNext}
             >
-              {questionIndex === total - 1 ? 'Review' : 'Next'}
+              {isLastCard ? 'Review' : 'Next'}
             </button>
             <button
               type="button"
-              className={`text-sm ${questionIndex === 0 ? 'text-gray-300' : 'text-gray-700'}`}
-              onClick={questionIndex === 0 ? undefined : onPrevious}
-              disabled={questionIndex === 0}
+              className={`text-sm ${isFirstCard ? 'text-gray-300' : 'text-gray-700'}`}
+              onClick={isFirstCard ? undefined : onPrevious}
+              disabled={isFirstCard}
             >
               Back
             </button>
