@@ -54,7 +54,7 @@ const Intro = () => {
           </button>
         </div>
 
-        <p className="absolute bottom-8 text-sm text-gray-500">fomz by RymeLabs</p>
+        <p className="absolute bottom-8 text-sm text-gray-500"><span className="font-brand font-bold">fomz</span> by RymeLabs</p>
       </div>
     </div>
   );

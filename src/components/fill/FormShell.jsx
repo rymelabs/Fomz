@@ -92,7 +92,6 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form }
                   </div>
                 )}
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-black/70">{form.title ? 'Registration' : 'Form'}</p>
                   <p className="font-display text-2xl text-gray-900">{form.title || 'Untitled form'}</p>
                   {form.description && <p className="text-sm text-gray-500">{form.description}</p>}
                 </div>
@@ -106,7 +105,7 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form }
         </main>
 
         <footer className="px-6 pb-10 text-center text-[0.65rem] uppercase tracking-[0.5em] text-gray-500">
-          fomz by RymeLabs
+          <span className="font-brand font-bold">fomz</span> by RymeLabs
         </footer>
       </div>
     </div>
