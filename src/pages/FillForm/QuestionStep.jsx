@@ -58,7 +58,7 @@ const QuestionStep = ({
         progressPercent={progressPercent}
         form={form}
       >
-        <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/20 backdrop-blur-md p-10 text-center shadow-[var(--fomz-card-shadow)]">
+        <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/20 backdrop-blur-md p-8 text-center shadow-[var(--fomz-card-shadow)]">
           <p className="text-gray-500">No questions available in this section.</p>
         </div>
       </FormShell>
@@ -109,7 +109,7 @@ const QuestionStep = ({
     >
       <div
         key={cardKey}
-        className={`relative overflow-hidden rounded-[32px] border border-white bg-white/20 backdrop-blur-md p-10 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
+        className={`relative overflow-hidden rounded-[32px] border border-white bg-white/10 backdrop-blur-sm p-8 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
       >
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from white via-white/70 to-transparent opacity-70"></div>
         <div className="relative space-y-12">
@@ -137,10 +137,10 @@ const QuestionStep = ({
               return (
                 <div key={question.id} className="space-y-4">
                   <div className="space-y-3">
-                    <p className="text-5xl font-semibold text-gray-500 mb-6">
+                    <p className="text-4xl font-semibold text-gray-500 mb-6">
                       {String(questionNumber).padStart(2, '0')}
                     </p>
-                    <p className="font-sans text-2xl text-gray-900">{question.label || 'Untitled question'}</p>
+                    <p className="font-sans text-xl text-gray-900">{question.label || 'Untitled question'}</p>
                     {question.helpText && <p className="text-gray-500">{question.helpText}</p>}
                   </div>
 

@@ -146,7 +146,7 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form, 
 
       <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-white/30 blur-3xl"></div>
 
-      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/60 bg-white/80 backdrop-blur">
+      <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/60 bg-white/40 backdrop-blur">
         <div className="mx-auto w-full max-w-4xl px-6 pt-6 pb-0">
           <p className="font-display font-bold text-5xl text-gray-900">fomz</p>
           <p className="text-xs tracking-[0.2em] text-gray-500">by RymeLabs</p>
@@ -159,32 +159,31 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form, 
             </div>
           )}
         </div>
-      </div>
-
-      <div className="relative z-10 flex min-h-screen flex-col pt-40">
-
         {form && showHeader && (
-          <div className="bg-white/0 animate-slide-down">
-            <div className="mx-auto w-full max-w-4xl px-6 py-6">
-              <div className="flex items-center gap-4">
+          <div className="bg-white/0 animate-slide-down border-t border-gray-200">
+            <div className="mx-auto w-full max-w-4xl px-6 py-3">
+              <div className="flex items-center gap-3">
                 {form.logoUrl ? (
-                  <img src={form.logoUrl} alt="Logo" className="h-12 w-12 rounded-full border border-gray-200 object-cover" />
+                  <img src={form.logoUrl} alt="Logo" className="h-8 w-8 rounded-full border border-gray-200 object-cover" />
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 text-xs uppercase tracking-[0.4em] text-black">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-xs uppercase tracking-[0.4em] text-black">
                     {form.title?.[0] || 'F'}
                   </div>
                 )}
                 <div>
-                  <p className="font-display text-2xl text-gray-900">{form.title || 'Untitled form'}</p>
+                  <p className="font-display text-xl text-gray-900">{form.title || 'Untitled form'}</p>
                   {form.description && <p className="text-sm text-gray-500">{form.description}</p>}
                 </div>
               </div>
             </div>
           </div>
         )}
+      </div>
+
+      <div className="relative z-10 flex min-h-screen flex-col pt-44">
 
         <main className="flex flex-1 items-center justify-center px-6 py-10">
-          <div className="w-full max-w-3xl">{children}</div>
+          <div className="w-full max-w-md">{children}</div>
         </main>
 
         <footer className="px-6 pb-10 text-center text-[0.65rem] text-gray-500">
