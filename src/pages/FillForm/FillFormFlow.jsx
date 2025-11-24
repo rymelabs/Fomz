@@ -225,7 +225,7 @@ const FillFormFlow = () => {
       }
     }
 
-    goToReview();
+    setStage('review');
   };
 
   const handlePrevious = () => {

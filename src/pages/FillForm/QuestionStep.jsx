@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import FormShell from '../../components/fill/FormShell';
 import ShortText from '../../components/forms/ShortText';
 import LongText from '../../components/forms/LongText';
@@ -45,10 +45,27 @@ const QuestionStep = ({
   const { themeData } = useTheme();
   const accent = themeData?.primaryColor || '#2563eb';
   const [errors, setErrors] = useState({});
+  const [height, setHeight] = useState('auto');
+  const cardRef = useRef(null);
   const cardKey = visibleQuestions.map((q) => q.id).join('-');
 
   useEffect(() => {
     setErrors({});
+  }, [cardKey]);
+
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.borderBoxSize) {
+          setHeight(entry.borderBoxSize[0].blockSize);
+        } else {
+          setHeight(entry.target.offsetHeight);
+        }
+      }
+    });
+    observer.observe(cardRef.current);
+    return () => observer.disconnect();
   }, [cardKey]);
 
   if (visibleQuestions.length === 0) {
@@ -107,10 +124,12 @@ const QuestionStep = ({
       progressPercent={progressPercent}
       form={form}
     >
-      <div
-        key={cardKey}
-        className={`relative overflow-hidden rounded-[32px] border border-white bg-white/10 backdrop-blur-sm p-8 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
-      >
+      <div style={{ height }} className="transition-[height] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]">
+        <div
+          ref={cardRef}
+          key={cardKey}
+          className={`relative overflow-hidden rounded-[32px] border border-white bg-white/10 backdrop-blur-sm p-8 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
+        >
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from white via-white/70 to-transparent opacity-70"></div>
         <div className="relative space-y-12">
           {section && (
@@ -175,6 +194,7 @@ const QuestionStep = ({
             </button>
           </div>
         </div>
+      </div>
       </div>
     </FormShell>
   );

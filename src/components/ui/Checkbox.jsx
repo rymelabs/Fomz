@@ -19,7 +19,7 @@ const Checkbox = ({
           disabled={disabled}
           className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded transition-colors"
         />
-        <span className="ml-2 text-sm text-gray-700">{label}</span>
+        <span className="ml-2 text-sm text-black">{label}</span>
       </label>
       
       {error && (
