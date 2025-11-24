@@ -22,6 +22,7 @@ const BuilderMain = () => {
     currentQuestionIndex,
     setCurrentQuestion,
     updateFormInfo,
+    updateSection,
     initForm,
     saveForm,
     isSaving

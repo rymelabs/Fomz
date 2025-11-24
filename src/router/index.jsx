@@ -11,6 +11,7 @@ import Preview from '../pages/Builder/Preview';
 import FillFormFlow from '../pages/FillForm/FillFormFlow';
 import ShortLinkRedirect from '../pages/ShortLinkRedirect';
 import ResponsesDashboard from '../pages/Responses/ResponsesDashboard';
+import Notifications from '../pages/Dashboard/Notifications';
 
 const withDashboardLayout = (Component) => (
   <DashboardLayout>
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/analytics/:formId',
     element: withDashboardLayout(FormAnalytics),
+  },
+  {
+    path: '/dashboard/notifications',
+    element: withDashboardLayout(Notifications),
   },
   {
     path: '/builder',

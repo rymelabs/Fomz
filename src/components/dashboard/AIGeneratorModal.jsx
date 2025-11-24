@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, X, Loader2 } from 'lucide-react';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useNavigate } from 'react-router-dom';
@@ -6,18 +6,34 @@ import Button from '../ui/Button';
 
 const AIGeneratorModal = ({ isOpen, onClose }) => {
   const [prompt, setPrompt] = useState('');
+  const [error, setError] = useState(null);
   const { generateForm, isGenerating } = useFormBuilderStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPrompt('');
+      setError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-    
-    const success = await generateForm(prompt);
-    if (success) {
-      navigate('/builder', { state: { fromAI: true } });
-      onClose();
+    setError(null);
+
+    try {
+      const success = await generateForm(prompt);
+      if (success) {
+        navigate('/builder', { state: { fromAI: true } });
+        onClose();
+      } else {
+        setError('Unable to generate form right now. Please try again.');
+      }
+    } catch (err) {
+      console.error('AI generation failed', err);
+      setError('Something went wrong while talking to the AI. Try again in a moment.');
     }
   };
 
@@ -56,6 +72,19 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
             className="w-full h-32 p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all resize-none text-sm mb-4 outline-none"
             disabled={isGenerating}
           />
+
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {isGenerating && (
+            <div className="mb-4 flex items-center gap-2 text-sm text-purple-700">
+              <span className="inline-flex h-2 w-2 animate-ping rounded-full bg-purple-500"></span>
+              <span className="font-medium">Thinking up fields, questions, and options...</span>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3">
             <Button 

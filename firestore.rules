@@ -24,6 +24,34 @@ service cloud.firestore {
       }
     }
 
+    // User profiles (minimal: users can read/write their own profile; admins can read all)
+    match /users/{userId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        request.auth.token.admin == true
+      );
+
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Notifications broadcast collection
+    match /notifications/{notificationId} {
+      // Anyone signed in can read notifications
+      allow read: if request.auth != null;
+
+      // Only admins can create/update notifications
+      allow create, update: if request.auth != null && (
+        request.auth.token.admin == true ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // Per-user notification state
+    match /users/{userId}/notifications/{notificationId} {
+      // A user can read/write only their own notification state
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // You can define other collection-level defaults here or keep everything else restricted
     // By default, all other reads/writes are denied except as defined above
   }

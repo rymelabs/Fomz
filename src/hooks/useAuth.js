@@ -7,7 +7,8 @@ import {
   signUpWithEmail,
   signInWithGoogle,
   logOut,
-  resetPassword
+  resetPassword,
+  getUserData
 } from '../services/userService';
 
 let authListenerUnsubscribe = null;
@@ -22,7 +23,8 @@ export const useAuth = () => {
     setLoading,
     loading,
     initializing,
-    setInitializing
+    setInitializing,
+    updateUser
   } = useUserStore();
 
   useEffect(() => {
@@ -37,6 +39,17 @@ export const useAuth = () => {
             displayName: firebaseUser.displayName,
             photoURL: firebaseUser.photoURL
           });
+
+          (async () => {
+            try {
+              const profile = await getUserData(firebaseUser.uid);
+              if (profile) {
+                updateUser(profile);
+              }
+            } catch (err) {
+              console.warn('Failed to load user profile', err);
+            }
+          })();
         } else {
           clearUser();
         }

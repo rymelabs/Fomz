@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FileEdit, BarChart3, LogOut, User2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import NotificationBell from '../components/dashboard/NotificationBell';
+import NotificationModal from '../components/dashboard/NotificationModal';
+import { useNotificationStore } from '../store/notificationStore';
 
 const navItems = [
   { label: 'My Forms', icon: LayoutDashboard, path: '/dashboard' },
@@ -12,8 +15,16 @@ const navItems = [
 const DashboardLayout = ({ children }) => {
   const { user, loading, signInGoogle, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const {
+    unreadCount,
+    activeHighPriority,
+    startListening,
+    stopListening,
+    acknowledgeHighPriority,
+  } = useNotificationStore();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -25,6 +36,18 @@ const DashboardLayout = ({ children }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user?.uid) {
+      startListening(user.uid);
+    } else {
+      stopListening();
+    }
+
+    return () => {
+      stopListening();
+    };
+  }, [user, startListening, stopListening]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
@@ -58,6 +81,14 @@ const DashboardLayout = ({ children }) => {
               ))}
             </nav>
             <div className="flex items-center gap-4">
+              {user && (
+                <NotificationBell
+                  unreadCount={unreadCount}
+                  hasHighPriority={Boolean(activeHighPriority)}
+                  pulse={Boolean(activeHighPriority)}
+                  onClick={() => navigate('/dashboard/notifications')}
+                />
+              )}
               {user ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -122,6 +153,10 @@ const DashboardLayout = ({ children }) => {
           </div>
         </main>
       </div>
+      <NotificationModal
+        notification={activeHighPriority}
+        onClose={() => acknowledgeHighPriority(user?.uid)}
+      />
     </div>
   );
 };
