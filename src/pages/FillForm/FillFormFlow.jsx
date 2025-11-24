@@ -302,13 +302,25 @@ const FillFormFlow = () => {
       // Fire-and-forget confirmation email if enabled and an email answer exists
       if (form.settings?.sendEmailReceipt) {
         const emailQuestion = questions.find((q) => q.type === 'email');
-        const toEmail = emailQuestion ? answers[emailQuestion.id] : null;
+        const rawEmailAnswer = emailQuestion ? answers[emailQuestion.id] : null;
+        const toEmail = typeof rawEmailAnswer === 'string' ? rawEmailAnswer.trim() : '';
+
+        const nameQuestion = questions.find(
+          (q) =>
+            q.type === 'short-text' &&
+            /name/i.test(q.label || q.title || '')
+        );
+        const respondentNameRaw = nameQuestion ? answers[nameQuestion.id] : null;
+        const respondentName =
+          typeof respondentNameRaw === 'string' && respondentNameRaw.trim()
+            ? respondentNameRaw.trim()
+            : '';
 
         if (toEmail) {
           const answersText = questions
             .map((q) => {
               const val = answers[q.id];
-              if (val === undefined || val === null) return null;
+              if (val === undefined || val === null || val === '') return null;
               const display =
                 Array.isArray(val) ? val.join(', ') : typeof val === 'boolean' ? (val ? 'Yes' : 'No') : val;
               return `${q.label || q.title || 'Question'}: ${display}`;
@@ -320,9 +332,12 @@ const FillFormFlow = () => {
             toEmail,
             formTitle: form.title || 'Your submission',
             answersText,
+            respondentName,
           }).catch((err) => {
             console.warn('Confirmation email failed', err);
           });
+        } else {
+          console.warn('Confirmation email enabled but no recipient email was provided in the form.');
         }
       }
 

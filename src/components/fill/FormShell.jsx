@@ -136,7 +136,7 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form, 
       style={containerStyle}
     >
       <div
-        className="pointer-events-none absolute inset-0 opacity-60 blur-3xl animate-gradient-xy"
+        className="pointer-events-none absolute inset-0 opacity-60 blur-3xl md:animate-gradient-xy"
         style={{ background: gradient, backgroundSize: '400% 400%' }}
       ></div>
       
