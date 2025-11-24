@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Check } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
@@ -6,6 +6,11 @@ import { useFormBuilderStore } from '../../store/formBuilderStore';
 const ThemeSelector = () => {
   const { themes, currentTheme, setTheme } = useThemeStore();
   const updateFormInfo = useFormBuilderStore((state) => state.updateFormInfo);
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  const themeEntries = useMemo(() => Object.entries(themes), [themes]);
+  const visibleThemes = themeEntries.slice(0, visibleCount);
+  const activeTheme = themes[currentTheme] || themes.blue;
 
   const handleSelect = (themeKey) => {
     setTheme(themeKey);
@@ -13,8 +18,9 @@ const ThemeSelector = () => {
   };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      {Object.entries(themes).map(([key, theme]) => {
+    <>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {visibleThemes.map(([key, theme]) => {
         const isActive = currentTheme === key;
 
         return (
@@ -64,8 +70,37 @@ const ThemeSelector = () => {
             </div>
           </button>
         );
-      })}
-    </div>
+        })}
+      </div>
+      {themeEntries.length > 6 && (
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-[11px] text-gray-500">
+            Showing {visibleThemes.length} of {themeEntries.length}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setVisibleCount(6)}
+              disabled={visibleCount <= 6}
+              className="text-xs font-semibold text-gray-700 underline-offset-4 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              See less
+            </button>
+            <button
+              type="button"
+              onClick={() => setVisibleCount((prev) => Math.min(prev + 4, themeEntries.length))}
+              disabled={visibleCount >= themeEntries.length}
+              className="text-xs font-semibold underline-offset-4 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                color: activeTheme?.primaryColor || '#4f46e5'
+              }}
+            >
+              See more
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

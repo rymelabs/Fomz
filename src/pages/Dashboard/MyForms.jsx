@@ -25,7 +25,22 @@ const themeTileBackgrounds = {
   mixed: 'from-[#a78bfa] to-[#7c3aed]',
   soft: 'from-[#fecdd3] to-[#dc2626]',
   minimal: 'from-[#f1f5f9] to-[#64748b]',
-  dark: 'from-[#0f172a] to-[#000000]'
+  dark: 'from-[#0f172a] to-[#000000]',
+  coral: 'from-[#ff9a8b] via-[#ffb347] to-[#ffd166]',
+  forest: 'from-[#0f9b0f] via-[#10b981] to-[#38b2ac]',
+  aurora: 'from-[#312e81] via-[#22d3ee] to-[#0ea5e9]',
+  sandstone: 'from-[#f2e8cf] via-[#e8d0a9] to-[#d9a05b]',
+  neon: 'from-[#0ea5e9] via-[#6366f1] to-[#22d3ee]',
+  berry: 'from-[#4c1d95] via-[#7c3aed] to-[#ec4899]',
+  slate: 'from-[#0f172a] via-[#1e293b] to-[#0f172a]',
+  sunrise: 'from-[#ff9a9e] via-[#fad0c4] to-[#fad0c4]',
+  teal: 'from-[#14b8a6] via-[#0ea5e9] to-[#6366f1]',
+  violet: 'from-[#a855f7] via-[#6366f1] to-[#22d3ee]',
+  citrus: 'from-[#fbbf24] via-[#f97316] to-[#ef4444]',
+  cobalt: 'from-[#0f172a] via-[#1e3a8a] to-[#2563eb]',
+  blush: 'from-[#fda4af] via-[#f9a8d4] to-[#fdf2f8]',
+  lagoon: 'from-[#0ea5e9] via-[#22c55e] to-[#bef264]',
+  latte: 'from-[#f7ead7] via-[#e0c9a6] to-[#c59b6c]'
 };
 
 const MyForms = () => {

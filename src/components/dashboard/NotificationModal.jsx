@@ -8,14 +8,15 @@ const NotificationModal = ({ notification, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
       <div className="relative w-full max-w-[320px] overflow-hidden rounded-2xl border border-white/80 bg-white/20 animate-scale-in">
         <style>{`
-          @keyframes bell-ring {
+          @keyframes bell-ring-interval {
             0% { transform: rotate(0deg); }
-            10% { transform: rotate(12deg); }
-            20% { transform: rotate(-12deg); }
-            30% { transform: rotate(10deg); }
-            40% { transform: rotate(-10deg); }
-            50% { transform: rotate(6deg); }
-            60% { transform: rotate(-6deg); }
+            2% { transform: rotate(12deg); }
+            4% { transform: rotate(-12deg); }
+            6% { transform: rotate(10deg); }
+            8% { transform: rotate(-10deg); }
+            10% { transform: rotate(6deg); }
+            12% { transform: rotate(-6deg); }
+            15% { transform: rotate(0deg); }
             100% { transform: rotate(0deg); }
           }
         `}</style>
@@ -24,7 +25,7 @@ const NotificationModal = ({ notification, onClose }) => {
             <Bell
               className="h-5 w-5"
               style={{
-                animation: 'bell-ring 1.2s ease-in-out infinite',
+                animation: 'bell-ring-interval 180s ease-in-out infinite',
                 transformOrigin: '50% 10%',
               }}
             />
