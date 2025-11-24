@@ -47,9 +47,11 @@ const NotificationItem = ({ notification, onMarkRead, isRead }) => {
             <h3 className="font-semibold text-gray-900 leading-tight text-sm">
               {notification.title || 'Notification'}
             </h3>
-            <span className={`rounded-full px-2 py-[1px] text-[10px] font-semibold ${badgeClass}`}>
-              {isHigh ? 'High' : 'Normal'}
-            </span>
+            {isHigh && (
+              <span className={`rounded-full px-2 py-[1px] text-[10px] font-semibold ${badgeClass}`}>
+                High
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-700 leading-snug">
             {notification.message || 'No details provided.'}
@@ -152,31 +154,32 @@ const Notifications = () => {
       )}
 
       {isAdmin && (
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <div className="flex items-start justify-between gap-4">
+        <Card className="border border-gray-200 bg-white/90 backdrop-blur-none shadow-none">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">Admin</p>
-              <h2 className="font-display text-xl text-gray-900">Broadcast notification</h2>
-              <p className="text-sm text-gray-600">
-                Send a message to all users. High priority will pop up immediately.
+              <p className="text-[10px] uppercase tracking-[0.3em] text-gray-500 font-semibold">Admin</p>
+              <h2 className="font-display text-lg text-gray-900">Broadcast notification</h2>
+              <p className="text-xs text-gray-600">
+                Send a quick update to everyone. High priority pops up instantly.
               </p>
             </div>
-            <div className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-red-600">
+            <span className="rounded-full border border-red-200 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-red-600">
               Admin only
-            </div>
+            </span>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-3">
             <Input
               label="Title"
               value={formState.title}
               onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
               placeholder="Scheduled maintenance"
+              className="text-sm"
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
               <textarea
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-200"
                 rows={3}
                 value={formState.message}
                 onChange={(e) =>
@@ -185,14 +188,14 @@ const Notifications = () => {
                 placeholder="Let users know what is happening..."
               />
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <label className="text-sm font-medium text-gray-700">Priority</label>
               <div className="flex gap-2">
                 {['normal', 'high'].map((level) => (
                   <button
                     key={level}
                     type="button"
-                    className={`rounded-full px-3 py-1 text-sm border transition ${
+                    className={`rounded-full px-3 py-[6px] text-xs border transition ${
                       formState.priority === level
                         ? 'border-gray-900 text-gray-900'
                         : 'border-gray-200 text-gray-600'
@@ -208,12 +211,12 @@ const Notifications = () => {
               <Button
                 onClick={handleCreate}
                 disabled={creating || !formState.title.trim() || !formState.message.trim()}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-none"
+                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95 border-none"
               >
                 {creating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Sending...
+                    Sending
                   </>
                 ) : (
                   <>
