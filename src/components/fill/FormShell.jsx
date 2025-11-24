@@ -149,26 +149,28 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form, 
       <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-white/30 blur-3xl"></div>
 
       <div className="fixed top-0 left-0 right-0 z-30 border-b border-white/60 bg-white/40 backdrop-blur">
-        <div className="mx-auto w-full max-w-4xl px-6 pt-6 pb-0 flex items-center justify-between">
-          <div>
-            <p className="font-display font-bold text-5xl text-gray-900">fomz</p>
-            <p className="text-xs tracking-[0.2em] text-gray-500">by RymeLabs</p>
-            {showProgress && (
-              <div className="mt-2 h-1.5 w-full rounded-full bg-gray-200/70">
-                <div
-                  className="h-full rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${Math.min(100, progressPercent)}%`, backgroundColor: accent }}
-                ></div>
-              </div>
+        <div className="mx-auto w-full max-w-4xl px-6 pt-6 pb-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-display font-bold text-5xl text-gray-900">fomz</p>
+              <p className="text-xs tracking-[0.2em] text-gray-500">by RymeLabs</p>
+            </div>
+            {showCreateButton && (
+              <button
+                onClick={() => navigate('/')}
+                className="rounded-full px-6 py-2 bg-black text-white text-sm font-medium transition-all duration-300 hover:scale-105 animate-fade-in"
+              >
+                Create fomz
+              </button>
             )}
           </div>
-          {showCreateButton && (
-            <button
-              onClick={() => navigate('/')}
-              className="rounded-full px-6 py-2 bg-black text-white text-sm font-medium transition-all duration-300 hover:scale-105 animate-fade-in"
-            >
-              Create fomz
-            </button>
+          {showProgress && (
+            <div className="mt-4 h-2 w-full rounded-full bg-gray-200/70">
+              <div
+                className="h-full rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${Math.min(100, progressPercent)}%`, backgroundColor: accent }}
+              ></div>
+            </div>
           )}
         </div>
         {form && showHeader && (

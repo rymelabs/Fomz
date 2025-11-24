@@ -11,6 +11,7 @@ import { useUserStore } from '../../store/userStore';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
+import { sendConfirmationEmail } from '../../services/emailService';
 
 const DEFAULT_SECTION_KEY = '__default';
 const PAIRED_TYPES = new Set(['short-text', 'email']);
@@ -296,6 +297,33 @@ const FillFormFlow = () => {
       if (form.settings?.redirectUrl) {
         window.location.href = form.settings.redirectUrl;
         return;
+      }
+
+      // Fire-and-forget confirmation email if enabled and an email answer exists
+      if (form.settings?.sendEmailReceipt) {
+        const emailQuestion = questions.find((q) => q.type === 'email');
+        const toEmail = emailQuestion ? answers[emailQuestion.id] : null;
+
+        if (toEmail) {
+          const answersText = questions
+            .map((q) => {
+              const val = answers[q.id];
+              if (val === undefined || val === null) return null;
+              const display =
+                Array.isArray(val) ? val.join(', ') : typeof val === 'boolean' ? (val ? 'Yes' : 'No') : val;
+              return `${q.label || q.title || 'Question'}: ${display}`;
+            })
+            .filter(Boolean)
+            .join('\n');
+
+          sendConfirmationEmail({
+            toEmail,
+            formTitle: form.title || 'Your submission',
+            answersText,
+          }).catch((err) => {
+            console.warn('Confirmation email failed', err);
+          });
+        }
       }
 
       setStage('success');
