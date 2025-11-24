@@ -24,54 +24,53 @@ const formatDate = (timestamp) => {
 
 const NotificationItem = ({ notification, onMarkRead, isRead }) => {
   const isHigh = notification.priority === 'high';
+  const iconClass = isHigh ? 'text-red-600' : 'text-gray-600';
+  const badgeClass = isHigh
+    ? 'bg-red-100 text-red-700'
+    : 'bg-gray-100 text-gray-600';
+
   return (
-    <Card
-      className={`flex flex-col gap-3 md:flex-row md:items-center md:justify-between ${
-        isHigh ? 'border-red-200 bg-red-50/50' : ''
-      } ${!isRead ? 'border-gray-200 shadow-sm' : 'border-transparent'}`}
+    <div
+      className="relative px-1 py-2 md:px-2 border-b border-gray-200"
     >
-      <div className="flex items-start gap-3">
-        <div
-          className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full ${
-            isHigh ? 'bg-red-100 text-red-600' : 'bg-purple-100 text-purple-600'
-          }`}
-        >
-          {isHigh ? <AlertTriangle className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+      <div className="flex items-start gap-3 md:gap-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600">
+          {isHigh ? (
+            <AlertTriangle className={`h-4 w-4 ${iconClass}`} />
+          ) : (
+            <Bell className={`h-4 w-4 ${iconClass}`} />
+          )}
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{notification.title || 'Notification'}</h3>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                isHigh
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {notification.priority === 'high' ? 'High' : 'Normal'}
+        <div className="flex-1 space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            {!isRead && <span className="h-1.5 w-1.5 rounded-full bg-primary-500"></span>}
+            <h3 className="font-semibold text-gray-900 leading-tight text-sm">
+              {notification.title || 'Notification'}
+            </h3>
+            <span className={`rounded-full px-2 py-[1px] text-[10px] font-semibold ${badgeClass}`}>
+              {isHigh ? 'High' : 'Normal'}
             </span>
-            {!isRead && (
-              <span className="h-2 w-2 rounded-full bg-primary-500 inline-block"></span>
-            )}
           </div>
-          <p className="mt-1 text-gray-700">{notification.message || 'No details provided.'}</p>
-          <p className="mt-2 text-xs text-gray-500">
-            {formatDate(notification.createdAt)}
+          <p className="text-sm text-gray-700 leading-snug">
+            {notification.message || 'No details provided.'}
           </p>
+          <div className="flex items-center gap-2 text-[11px] text-gray-500">
+            <span>{formatDate(notification.createdAt)}</span>
+            <span className="h-1 w-1 rounded-full bg-gray-300" />
+            <span>{isHigh ? 'Important' : 'Update'}</span>
+          </div>
         </div>
+        {!isRead && (
+          <button
+            onClick={onMarkRead}
+            className="mt-1 inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-700 transition-colors hover:border-gray-900"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Done
+          </button>
+        )}
       </div>
-      {!isRead && (
-        <Button
-          size="sm"
-          onClick={onMarkRead}
-          className="self-start md:self-auto"
-          variant="outline"
-        >
-          <CheckCircle2 className="h-4 w-4 mr-2" />
-          Mark read
-        </Button>
-      )}
-    </Card>
+    </div>
   );
 };
 
