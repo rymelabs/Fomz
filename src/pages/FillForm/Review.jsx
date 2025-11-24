@@ -23,7 +23,7 @@ const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
                 <div key={question.id} className="rounded-2xl border border-gray-200/70 bg-white/90 p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold font-sans text-gray-900">{question.label || 'Untitled question'}</p>
+                      <p className="text-sm font-semibold text-gray-900">{question.label || 'Untitled question'}</p>
                       <p className="mt-2 text-sm text-gray-600">
                         {answer ? (Array.isArray(answer) ? answer.join(', ') : answer) : 'No answer'}
                       </p>

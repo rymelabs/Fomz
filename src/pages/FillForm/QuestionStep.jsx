@@ -159,7 +159,7 @@ const QuestionStep = ({
                     <p className="text-4xl font-semibold text-gray-500 mb-6">
                       {String(questionNumber).padStart(2, '0')}
                     </p>
-                    <p className="font-sans text-xl text-gray-900">{question.label || 'Untitled question'}</p>
+                    <p className="text-xl text-gray-900">{question.label || 'Untitled question'}</p>
                     {question.helpText && <p className="text-gray-500">{question.helpText}</p>}
                   </div>
 
