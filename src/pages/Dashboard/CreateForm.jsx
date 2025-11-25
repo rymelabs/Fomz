@@ -33,23 +33,13 @@ const CreateForm = () => {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       <div className="mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        <div className="flex items-center justify-between mb-4">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="group flex items-center gap-2 text-sm text-gray-500 transition-all"
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition">←</span>
-            Back to dashboard
-          </button>
-          <Button 
-            onClick={handleCreateWithAI} 
-            disabled={isGenerating}
-            className="inline-flex items-center gap-2 rounded-full border border-sky-500 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95"
-          >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-sky-600" />}
-            Create with Fomzy
-          </Button>
-        </div>
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="group flex items-center gap-2 text-sm text-gray-500 transition-all mb-4"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition">←</span>
+          Back to dashboard
+        </button>
         <h1 className="font-display text-2xl text-gray-900 font-bold">Create a new form</h1>
         <p className="mt-2 text-gray-600 text-xs">Start by giving your form a name and description.</p>
       </div>
@@ -78,6 +68,14 @@ const CreateForm = () => {
           <div className="pt-4 flex items-center justify-end gap-3">
             <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="transition-transform active:scale-95">
               Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateWithAI} 
+              disabled={isGenerating}
+              className="inline-flex items-center gap-2 rounded-full border border-sky-500 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95"
+            >
+              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-sky-600" />}
+              Create with Fomzy
             </Button>
             <Button onClick={handleCreate} variant="outline" size="sm" className="border-primary-500 text-primary-600 transition-all active:scale-95">
               Start Building →
