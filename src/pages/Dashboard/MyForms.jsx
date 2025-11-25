@@ -191,23 +191,23 @@ const MyForms = () => {
                     </p>
                   </div>
                 </div>
-                <div className="mt-3 md:mt-6 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-3">
+                <div className="mt-3 md:mt-6 flex flex-col justify-between gap-2 md:gap-3">
                   <div>
                     <p className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gray-500">Updated</p>
                     <p className="text-xs md:text-sm text-gray-900">{updatedLabel}</p>
                   </div>
                   <button
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-900 w-full md:w-auto transition-all active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-900 w-full transition-all active:scale-95"
                     onClick={() => navigate(`/builder?formId=${form.id}`)}
                   >
                     Open
                     <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
                   </button>
                 </div>
-                <div className="mt-3 md:mt-4 flex flex-wrap gap-2 md:gap-3 text-xs md:text-sm">
+                <div className="mt-3 md:mt-4 flex flex-col gap-2 md:gap-3 text-xs md:text-sm">
                   {isPublished ? (
                     <button
-                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
+                      className="w-full rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
                       onClick={async () => {
                         const url = form.shareId ? `${window.location.origin}/f/${form.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
                         try {
@@ -222,7 +222,7 @@ const MyForms = () => {
                     </button>
                   ) : (
                     <button
-                      className="w-full md:w-auto rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
+                      className="w-full rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
                       onClick={async () => {
                         try {
                           const result = await publishFormService(form.id, true);
