@@ -178,6 +178,9 @@ const BuilderMain = () => {
   const handleFomzyFill = async () => {
     setShowFomzyMenu(false);
     setShowFomzyOverlay(true);
+    if (window?.navigator?.vibrate) {
+      window.navigator.vibrate(10);
+    }
     const hasTitle = Boolean(title?.trim());
     const hasDescription = Boolean(description?.trim());
     const hasQuestions = questions.length > 0;
@@ -407,29 +410,29 @@ const BuilderMain = () => {
           className="mb-2 flex flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl transition-all duration-200 ease-out animate-fade-in-up"
         >
           <button
-            className="inline-flex items-center gap-2 rounded-full border border-purple-200 px-3 py-2 text-sm font-semibold text-purple-700 hover:border-purple-500 hover:bg-purple-50 active:scale-95 transition"
+            className="inline-flex items-center gap-2 rounded-full border border-sky-200 px-3 py-2 text-sm font-semibold text-sky-700 hover:border-sky-500 hover:bg-sky-50 active:scale-95 transition"
             onClick={() => {
               setShowFomzyMenu(false);
               setShowFomzy(true);
             }}
             disabled={isGenerating}
           >
-            <Feather className="h-4 w-4 text-purple-600" />
+            <Feather className="h-4 w-4 text-sky-600" />
             Create new
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 hover:border-gray-400 hover:bg-gray-50 active:scale-95 transition"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 hover:border-sky-200 hover:bg-sky-50 active:scale-95 transition"
             onClick={handleFomzyFill}
             disabled={isGenerating}
           >
             {isGenerating ? (
               <>
-                <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
+                <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
                 Building�
               </>
             ) : (
               <>
-                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                <span className="h-2 w-2 rounded-full bg-sky-500"></span>
                 Fill this form
               </>
             )}
@@ -437,18 +440,23 @@ const BuilderMain = () => {
         </div>
       )}
       <button
-        onClick={() => setShowFomzyMenu((prev) => !prev)}
-        className={`inline-flex items-center gap-2 rounded-full border border-purple-200 bg-white px-4 py-2 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95 ${showFomzyMenu ? 'animate-pulse' : ''}`}
+        onClick={() => {
+          if (window?.navigator?.vibrate) {
+            window.navigator.vibrate(10);
+          }
+          setShowFomzyMenu((prev) => !prev);
+        }}
+        className={`inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-4 py-2 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95 ${showFomzyMenu ? 'animate-pulse' : ''}`}
         title="Ask Fomzy to help"
       >
-        <Feather className="h-4 w-4 text-purple-600" />
+        <Feather className="h-4 w-4 text-sky-600" />
         <span className="text-sm font-semibold text-gray-800">Fomzy</span>
       </button>
     </div>
     {showFomzyOverlay && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <div className="rounded-full bg-white px-6 py-4 shadow-2xl flex items-center gap-3 border border-gray-200 animate-fade-in-up">
-          <span className="inline-flex h-5 w-5 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+          <span className="inline-flex h-5 w-5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
           <div>
             <p className="text-sm font-semibold text-gray-900">Building with Fomzy</p>
             <p className="text-xs text-gray-600">Drafting sections, questions, and theme...</p>
@@ -461,3 +469,9 @@ const BuilderMain = () => {
 };
 
 export default BuilderMain;
+
+
+
+
+
+

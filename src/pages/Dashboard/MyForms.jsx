@@ -119,10 +119,15 @@ const MyForms = () => {
           </button>
           <button 
             title="Let Fomzy draft sections, questions, and theme"
-            className="inline-flex items-center gap-2 rounded-full border border-purple-600 bg-purple-50 px-3 py-1.5 text-sm font-semibold text-purple-700 transition-all hover:bg-purple-100 active:scale-95" 
-            onClick={() => setIsAIModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-sky-500 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95" 
+            onClick={() => {
+              if (window?.navigator?.vibrate) {
+                window.navigator.vibrate(10);
+              }
+              setIsAIModalOpen(true);
+            }}
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4 text-sky-600" />
             Create with Fomzy
           </button>
           <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-2 py-1.5 text-sm text-gray-600 transition-all active:scale-95" onClick={() => navigate('/dashboard/analytics')}>

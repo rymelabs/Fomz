@@ -45,12 +45,12 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
           <div className="p-6 md:p-8 flex flex-col gap-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                   <Feather className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-display font-semibold text-gray-900">Create with Fomzy</h2>
-                  <p className="text-xs uppercase tracking-[0.35em] text-gray-500 font-semibold">AI quill companion</p>
+                  <p className="text-xs uppercase text-gray-500 font-semibold">AI quill companion</p>
                 </div>
               </div>
               <button
@@ -68,7 +68,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
                 Describe the form you want. Fomzy will suggest sections, questions, and a fitting theme.
               </p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
-                <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-1 text-purple-700 border border-purple-100">
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-blue-700 border border-blue-100">
                   <Sparkles className="h-3 w-3" />
                   Sections & questions
                 </span>
@@ -82,7 +82,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g., A customer satisfaction survey for a coffee shop with ratings, a comment box, and contact details."
-              className="w-full h-32 md:h-40 p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all resize-none text-sm outline-none"
+              className="w-full h-32 md:h-40 p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-all resize-none text-sm outline-none"
               disabled={isGenerating}
             />
 
@@ -94,8 +94,8 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
 
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               {isGenerating ? (
-                <div className="flex items-center gap-2 text-sm text-purple-700">
-                  <span className="inline-flex h-3 w-3 animate-ping rounded-full bg-purple-500" />
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <span className="inline-flex h-3 w-3 animate-ping rounded-full bg-blue-500" />
                   <span className="font-medium">Fomzy is drafting your form...</span>
                 </div>
               ) : (
@@ -114,7 +114,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
                 <Button
                   onClick={handleGenerate}
                   disabled={!prompt.trim() || isGenerating}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none"
+                  className="bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 hover:from-sky-500 hover:via-blue-600 hover:to-indigo-600 text-white border-none shadow-md hover:shadow-xl transition"
                 >
                   {isGenerating ? (
                     <>
@@ -124,7 +124,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Generate with Fomzy
+                      Generate
                     </>
                   )}
                 </Button>
@@ -133,12 +133,21 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="hidden md:flex flex-col gap-4 border-l border-gray-200 bg-white/60 p-6">
-            <div className="rounded-2xl border border-purple-100 bg-purple-50 p-4 text-purple-800">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-blue-800">
               <p className="text-sm font-semibold">What Fomzy can do</p>
               <ul className="mt-2 space-y-1 text-sm">
-                <li>�?� Draft sections & sensible question types</li>
-                <li>�?� Propose themes that match the brief</li>
-                <li>�?� Ensure required fields where appropriate</li>
+                <li className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                  Draft sections & sensible question types
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                  Propose themes that match the brief
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                  Ensure required fields where appropriate
+                </li>
               </ul>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-blue-800">
