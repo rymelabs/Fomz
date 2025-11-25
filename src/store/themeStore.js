@@ -403,11 +403,39 @@ const themes = {
   }
 };
 
+const appBackgroundOptions = [
+  { id: 'sky', label: 'Sky', base: '#f0f9ff', blob1: '#7dd3fc', blob2: '#c7d2fe', avatarBg: '#e0f2fe' },
+  { id: 'white', label: 'White', base: '#ffffff', blob1: '#e5e7eb', blob2: '#c7d2fe', avatarBg: '#f8fafc' },
+  { id: 'sand', label: 'Sand', base: '#fdf6e3', blob1: '#fbbf24', blob2: '#fcd34d', avatarBg: '#fef3c7' },
+  { id: 'slate', label: 'Slate', base: '#f8fafc', blob1: '#cbd5e1', blob2: '#e2e8f0', avatarBg: '#e2e8f0' },
+  { id: 'mint', label: 'Mint', base: '#ecfdf3', blob1: '#34d399', blob2: '#a7f3d0', avatarBg: '#d1fae5' },
+  { id: 'rose', label: 'Rose', base: '#fff1f2', blob1: '#fb7185', blob2: '#fecdd3', avatarBg: '#ffe4e6' },
+  { id: 'dusk', label: 'Dusk', base: '#eef2ff', blob1: '#a78bfa', blob2: '#c7d2fe', avatarBg: '#e0e7ff' },
+  { id: 'peach', label: 'Peach', base: '#fff7ed', blob1: '#fb923c', blob2: '#fed7aa', avatarBg: '#ffedd5' },
+  { id: 'citrus', label: 'Citrus', base: '#fffbeb', blob1: '#fcd34d', blob2: '#f97316', avatarBg: '#fef9c3' },
+  { id: 'seafoam', label: 'Seafoam', base: '#effdfd', blob1: '#67e8f9', blob2: '#22c55e', avatarBg: '#ccfbf1' },
+  { id: 'lilac', label: 'Lilac', base: '#f5f3ff', blob1: '#c084fc', blob2: '#a78bfa', avatarBg: '#ede9fe' },
+  { id: 'cobalt', label: 'Cobalt', base: '#e0f2fe', blob1: '#2563eb', blob2: '#38bdf8', avatarBg: '#bfdbfe' },
+  { id: 'orchid', label: 'Orchid', base: '#faf5ff', blob1: '#c084fc', blob2: '#e879f9', avatarBg: '#f3e8ff' },
+  { id: 'forest', label: 'Forest', base: '#ecfdf3', blob1: '#10b981', blob2: '#22c55e', avatarBg: '#d1fae5' },
+  { id: 'denim', label: 'Denim', base: '#eef2ff', blob1: '#6366f1', blob2: '#0ea5e9', avatarBg: '#e0f2fe' },
+  { id: 'cafe', label: 'Cafe', base: '#f5f5f4', blob1: '#d6d3d1', blob2: '#f59e0b', avatarBg: '#e7e5e4' },
+  { id: 'ember', label: 'Ember', base: '#fff1f2', blob1: '#f97316', blob2: '#fb7185', avatarBg: '#ffe4e6' },
+  { id: 'teal', label: 'Teal', base: '#ecfeff', blob1: '#06b6d4', blob2: '#22d3ee', avatarBg: '#cffafe' },
+  { id: 'platinum', label: 'Platinum', base: '#f8fafc', blob1: '#e2e8f0', blob2: '#cbd5e1', avatarBg: '#e2e8f0' },
+  { id: 'aurora', label: 'Aurora', base: '#0b1224', blob1: '#22d3ee', blob2: '#a855f7', avatarBg: '#1f2937' },
+  { id: 'charcoal', label: 'Charcoal', base: '#111827', blob1: '#1f2937', blob2: '#374151', avatarBg: '#1f2937' },
+  { id: 'midnight', label: 'Midnight', base: '#0f172a', blob1: '#1d4ed8', blob2: '#0ea5e9', avatarBg: '#1f2937' },
+  { id: 'blush', label: 'Blush', base: '#fff1f2', blob1: '#f9a8d4', blob2: '#f472b6', avatarBg: '#ffe4e6' },
+  { id: 'canyon', label: 'Canyon', base: '#fef3c7', blob1: '#f59e0b', blob2: '#fb923c', avatarBg: '#fde68a' }
+];
+
 export const useThemeStore = create(
   persist(
     (set) => ({
       currentTheme: 'blue',
-      appBackground: '#f8fafc',
+      appBackgroundId: 'sky',
+      appBackgroundOptions,
       themes,
       
       setTheme: (themeName) => {
@@ -416,8 +444,18 @@ export const useThemeStore = create(
         }
       },
 
-      setAppBackground: (color) => {
-        set({ appBackground: color });
+      setAppBackground: (idOrColor) => {
+        const opt = appBackgroundOptions.find((o) => o.id === idOrColor);
+        if (opt) {
+          set({ appBackgroundId: opt.id });
+        } else {
+          // legacy direct color support
+          set({ appBackgroundId: null, appBackground: idOrColor });
+        }
+      },
+
+      getAppBackgroundOption: (id) => {
+        return appBackgroundOptions.find((o) => o.id === id) || appBackgroundOptions[0];
       },
       
       getTheme: (themeName) => {
@@ -438,7 +476,7 @@ export const useThemeStore = create(
       },
       partialize: (state) => ({
         currentTheme: state.currentTheme,
-        appBackground: state.appBackground
+        appBackgroundId: state.appBackgroundId || 'sky'
       })
     }
   )

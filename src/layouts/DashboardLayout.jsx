@@ -25,7 +25,12 @@ const DashboardLayout = ({ children }) => {
     stopListening,
     acknowledgeHighPriority,
   } = useNotificationStore();
-  const appBackground = useThemeStore((state) => state.appBackground || '#ffffff');
+  const appBackgroundId = useThemeStore((state) => state.appBackgroundId || 'sky');
+  const getAppBackgroundOption = useThemeStore((state) => state.getAppBackgroundOption);
+  const currentBg = getAppBackgroundOption(appBackgroundId);
+  const baseBg = currentBg?.base || '#ffffff';
+  const blob1 = currentBg?.blob1 || '#7CA7FF';
+  const blob2 = currentBg?.blob2 || '#B6F3CF';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -51,9 +56,9 @@ const DashboardLayout = ({ children }) => {
   }, [user, startListening, stopListening]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: appBackground }}>
-      <div className="pointer-events-none absolute -top-32 right-0 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-[#7CA7FF] via-[#7CA7FF]/60 to-transparent opacity-60 blur-3xl"></div>
-      <div className="pointer-events-none absolute bottom-0 -left-32 h-[30rem] w-[30rem] rounded-full bg-gradient-to-tl from-[#B6F3CF] via-[#B6F3CF]/70 to-transparent opacity-90 blur-3xl"></div>
+    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: baseBg }}>
+      <div className="pointer-events-none absolute -top-32 right-0 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br" style={{ backgroundImage: `linear-gradient(to bottom right, ${blob1}, transparent)` , opacity: 0.6, filter: 'blur(24px)' }}></div>
+      <div className="pointer-events-none absolute bottom-0 -left-32 h-[30rem] w-[30rem] rounded-full bg-gradient-to-tl" style={{ backgroundImage: `linear-gradient(to top left, ${blob2}, transparent)` , opacity: 0.9, filter: 'blur(24px)' }}></div>
 
       <div className="relative flex min-h-screen flex-col">
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/70 bg-white/80 backdrop-blur">
@@ -68,6 +73,11 @@ const DashboardLayout = ({ children }) => {
                   key={item.label}
                   to={item.path}
                   end={item.path === '/dashboard'}
+                  onClick={() => {
+                    if (window?.navigator?.vibrate) {
+                      window.navigator.vibrate(10);
+                    }
+                  }}
                   className={({ isActive }) =>
                     `flex items-center gap-2 rounded-full px-3 py-2 transition ${
                       isActive
@@ -146,6 +156,11 @@ const DashboardLayout = ({ children }) => {
                   key={item.label}
                   to={item.path}
                   end={item.path === '/dashboard'}
+                  onClick={() => {
+                    if (window?.navigator?.vibrate) {
+                      window.navigator.vibrate(10);
+                    }
+                  }}
                   className={({ isActive }) =>
                     `flex items-center gap-1 ${isActive ? 'text-gray-900' : ''}`
                   }

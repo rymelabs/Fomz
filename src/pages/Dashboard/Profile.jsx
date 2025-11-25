@@ -15,7 +15,9 @@ const Profile = () => {
   const { logout, forgotPassword } = useAuth();
   const setTheme = useThemeStore((state) => state.setTheme);
   const setAppBackground = useThemeStore((state) => state.setAppBackground);
-  const appBackground = useThemeStore((state) => state.appBackground || '#f8fafc');
+  const appBackgroundId = useThemeStore((state) => state.appBackgroundId || 'sky');
+  const appOptions = useThemeStore((state) => state.appBackgroundOptions);
+  const currentBgOption = appOptions.find((o) => o.id === appBackgroundId) || appOptions[0];
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -101,7 +103,10 @@ const Profile = () => {
           {user.photoURL ? (
             <img src={user.photoURL} alt="Avatar" className="h-12 w-12 rounded-full object-cover border border-gray-200" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-700 border border-sky-100 text-base font-semibold">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full text-sky-900 border border-sky-100 text-base font-semibold"
+              style={{ backgroundColor: currentBgOption.avatarBg || '#e0f2fe' }}
+            >
               {initials || 'F'}
             </div>
           )}
@@ -143,28 +148,26 @@ const Profile = () => {
           <div className="space-y-4">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-2">App background</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { label: 'Sky', value: '#f0f9ff' },
-                  { label: 'White', value: '#ffffff' },
-                  { label: 'Sand', value: '#fdf6e3' },
-                  { label: 'Slate', value: '#f8fafc' },
-                ].map((opt) => (
+              <div className="grid grid-cols-2 gap-2">
+                {appOptions.map((opt) => (
                   <button
-                    key={opt.value}
+                    key={opt.id}
                     type="button"
-                    onClick={() => setAppBackground(opt.value)}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
-                      appBackground === opt.value
+                    onClick={() => setAppBackground(opt.id)}
+                    className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                      appBackgroundId === opt.id
                         ? 'border-sky-500 text-sky-700 bg-sky-50'
                         : 'border-gray-200 text-gray-700 hover:border-sky-200 hover:bg-sky-50'
                     }`}
                   >
-                    <span
-                      className="h-4 w-4 rounded-full border border-gray-200"
-                      style={{ backgroundColor: opt.value }}
-                    />
-                    {opt.label}
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="h-4 w-4 rounded-full border border-gray-200"
+                        style={{ backgroundColor: opt.base }}
+                      />
+                      {opt.label}
+                    </span>
+                    <span className="text-[10px] text-gray-400">blob</span>
                   </button>
                 ))}
               </div>
