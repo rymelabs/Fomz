@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, X, Loader2 } from 'lucide-react';
+import { Sparkles, X, Loader2, Feather } from 'lucide-react';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
@@ -48,9 +48,12 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+                <Feather className="h-5 w-5 text-purple-600" />
               </div>
-              <h2 className="text-xl font-display font-semibold text-gray-900">Create with AI</h2>
+              <div>
+                <h2 className="text-xl font-display font-semibold text-gray-900">Create with Fomzy</h2>
+                <p className="text-[11px] uppercase tracking-[0.3em] text-gray-500 font-semibold">AI quill companion</p>
+              </div>
             </div>
             <button 
               onClick={onClose}
@@ -62,7 +65,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
           </div>
 
           <p className="text-gray-600 mb-4 text-sm">
-            Describe the form you want to create, and our AI will build it for you instantly.
+            Describe the form you want to create, and Fomzy will draft sections, questions, and a theme for you.
           </p>
 
           <textarea

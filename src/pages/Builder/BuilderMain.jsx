@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Layout, Eye, Edit } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import QuestionCard from '../../components/builder/QuestionCard';
@@ -6,10 +6,12 @@ import ThemeSelector from '../../components/builder/ThemeSelector';
 import LogoUploader from '../../components/builder/LogoUploader';
 import FormSettings from '../../components/builder/FormSettings';
 import StyleSettings from '../../components/builder/StyleSettings';
+import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { getForm } from '../../services/formService';
 import { useNavigate } from 'react-router-dom';
+import { Feather } from 'lucide-react';
 
 const BuilderMain = () => {
   const {
@@ -32,6 +34,7 @@ const BuilderMain = () => {
   const location = useLocation();
   const initializedRef = useRef(false);
   const themeSectionRef = useRef(null);
+  const [showFomzy, setShowFomzy] = useState(false);
 
   useEffect(() => {
     if (!initializedRef.current) {
@@ -87,6 +90,8 @@ const BuilderMain = () => {
   };
 
   return (
+    <>
+    <AIGeneratorModal isOpen={showFomzy} onClose={() => setShowFomzy(false)} />
     <div className="grid lg:grid-cols-[2fr,1fr] gap-4 animate-fade-in">
       <div className="space-y-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <header className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all relative">
@@ -280,6 +285,15 @@ const BuilderMain = () => {
         </section>
       </aside>
     </div>
+    <button
+      onClick={() => setShowFomzy(true)}
+      className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-white px-4 py-2 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
+      title="Ask Fomzy to draft a new form"
+    >
+      <Feather className="h-4 w-4 text-purple-600" />
+      <span className="text-sm font-semibold text-gray-800">Fomzy</span>
+    </button>
+    </>
   );
 };
 

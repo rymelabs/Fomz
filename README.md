@@ -1,6 +1,6 @@
 # Fomz — Modern Forms
 
-Fomz is a modern, Tailwind + React + Firebase-based forms app with a drag-and-drop builder, responses, analytics, and custom themes.
+Fomz is a modern, Tailwind + React + Firebase-based forms app with a drag-and-drop builder, responses, analytics, custom themes, and Fomzy—our quill-inspired AI that drafts sections, questions, and themes for you.
 
 ## Quick start
 
