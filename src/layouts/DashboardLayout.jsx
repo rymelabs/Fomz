@@ -57,8 +57,18 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: baseBg }}>
-      <div className="pointer-events-none absolute -top-32 right-0 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br" style={{ backgroundImage: `linear-gradient(to bottom right, ${blob1}, transparent)` , opacity: 0.6, filter: 'blur(24px)' }}></div>
-      <div className="pointer-events-none absolute bottom-0 -left-32 h-[30rem] w-[30rem] rounded-full bg-gradient-to-tl" style={{ backgroundImage: `linear-gradient(to top left, ${blob2}, transparent)` , opacity: 0.9, filter: 'blur(24px)' }}></div>
+      {blob1 && (
+        <div
+          className="pointer-events-none absolute -top-32 right-0 h-[28rem] w-[28rem] rounded-full"
+          style={{ backgroundImage: `linear-gradient(to bottom right, ${blob1}, transparent)`, opacity: 0.6, filter: 'blur(24px)' }}
+        ></div>
+      )}
+      {blob2 && (
+        <div
+          className="pointer-events-none absolute bottom-0 -left-32 h-[30rem] w-[30rem] rounded-full"
+          style={{ backgroundImage: `linear-gradient(to top left, ${blob2}, transparent)`, opacity: 0.9, filter: 'blur(24px)' }}
+        ></div>
+      )}
 
       <div className="relative flex min-h-screen flex-col">
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/70 bg-white/80 backdrop-blur">

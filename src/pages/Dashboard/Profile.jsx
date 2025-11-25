@@ -15,9 +15,10 @@ const Profile = () => {
   const { logout, forgotPassword } = useAuth();
   const setTheme = useThemeStore((state) => state.setTheme);
   const setAppBackground = useThemeStore((state) => state.setAppBackground);
-  const appBackgroundId = useThemeStore((state) => state.appBackgroundId || 'sky');
+  const appBackgroundId = useThemeStore((state) => state.appBackgroundId || 'default');
   const appOptions = useThemeStore((state) => state.appBackgroundOptions);
   const currentBgOption = appOptions.find((o) => o.id === appBackgroundId) || appOptions[0];
+  const [visibleCount, setVisibleCount] = useState(9);
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -149,7 +150,22 @@ const Profile = () => {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-2">App background</p>
               <div className="grid grid-cols-2 gap-2">
-                {appOptions.map((opt) => (
+                <button
+                  type="button"
+                  onClick={() => setAppBackground('default')}
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                    appBackgroundId === 'default'
+                      ? 'border-sky-500 text-sky-700 bg-sky-50'
+                      : 'border-gray-200 text-gray-700 hover:border-sky-200 hover:bg-sky-50'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 rounded-full border border-gray-200 bg-white" />
+                    Default
+                  </span>
+                  <span className="text-[10px] text-gray-400">reset</span>
+                </button>
+                {appOptions.slice(0, visibleCount).map((opt) => (
                   <button
                     key={opt.id}
                     type="button"
@@ -171,6 +187,31 @@ const Profile = () => {
                   </button>
                 ))}
               </div>
+              {appOptions.length > 9 && (
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-[11px] text-gray-500">
+                    Showing {Math.min(visibleCount, appOptions.length)} of {appOptions.length}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount(9)}
+                      disabled={visibleCount <= 9}
+                      className="text-[11px] font-semibold text-gray-700 underline-offset-4 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      See less
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((prev) => Math.min(prev + 6, appOptions.length))}
+                      disabled={visibleCount >= appOptions.length}
+                      className="text-[11px] font-semibold text-gray-700 underline-offset-4 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      See more
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="text-[11px] text-gray-500">
               Notification preferences can be managed in the notifications page.

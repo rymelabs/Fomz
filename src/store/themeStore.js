@@ -404,6 +404,7 @@ const themes = {
 };
 
 const appBackgroundOptions = [
+  { id: 'default', label: 'Default', base: '#ffffff', blob1: null, blob2: null, avatarBg: '#f8fafc' },
   { id: 'sky', label: 'Sky', base: '#f0f9ff', blob1: '#7dd3fc', blob2: '#c7d2fe', avatarBg: '#e0f2fe' },
   { id: 'white', label: 'White', base: '#ffffff', blob1: '#e5e7eb', blob2: '#c7d2fe', avatarBg: '#f8fafc' },
   { id: 'sand', label: 'Sand', base: '#fdf6e3', blob1: '#fbbf24', blob2: '#fcd34d', avatarBg: '#fef3c7' },
@@ -434,7 +435,7 @@ export const useThemeStore = create(
   persist(
     (set) => ({
       currentTheme: 'blue',
-      appBackgroundId: 'sky',
+      appBackgroundId: 'default',
       appBackgroundOptions,
       themes,
       
@@ -476,7 +477,7 @@ export const useThemeStore = create(
       },
       partialize: (state) => ({
         currentTheme: state.currentTheme,
-        appBackgroundId: state.appBackgroundId || 'sky'
+        appBackgroundId: state.appBackgroundId || 'default'
       })
     }
   )

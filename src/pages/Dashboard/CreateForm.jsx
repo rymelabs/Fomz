@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
@@ -37,7 +37,9 @@ const CreateForm = () => {
           onClick={() => navigate('/dashboard')}
           className="group flex items-center gap-2 text-sm text-gray-500 transition-all mb-4"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition">←</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white transition">
+            <ArrowLeft className="h-4 w-4" />
+          </span>
           Back to dashboard
         </button>
         <h1 className="font-display text-2xl text-gray-900 font-bold">Create a new form</h1>
@@ -65,20 +67,20 @@ const CreateForm = () => {
             />
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="transition-transform active:scale-95">
+          <div className="pt-4 flex items-center justify-end gap-1.5 flex-nowrap">
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="transition-transform active:scale-95 text-[9px] px-2.5 py-1 md:px-3 md:py-1.5 md:text-sm">
               Cancel
             </Button>
             <Button 
               onClick={handleCreateWithAI} 
               disabled={isGenerating}
-              className="inline-flex items-center gap-2 rounded-full border border-sky-500 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-full border border-sky-500 bg-sky-50 px-2.5 py-1 text-[9px] font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95 md:px-3 md:py-1.5 md:text-sm md:gap-2"
             >
-              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-sky-600" />}
+              {isGenerating ? <Loader2 className="h-3 w-3 animate-spin md:h-4 md:w-4" /> : <Sparkles className="h-3 w-3 text-sky-600 md:h-4 md:w-4" />}
               Create with Fomzy
             </Button>
-            <Button onClick={handleCreate} variant="outline" size="sm" className="border-primary-500 text-primary-600 transition-all active:scale-95">
-              Start Building →
+            <Button onClick={handleCreate} variant="outline" size="sm" className="border-black text-black transition-all active:scale-95 text-[9px] px-2.5 py-1 md:px-3 md:py-1.5 md:text-sm">
+              Start Building
             </Button>
           </div>
         </div>
@@ -90,3 +92,9 @@ const CreateForm = () => {
 };
 
 export default CreateForm;
+
+
+
+
+
+
