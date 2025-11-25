@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Sparkles, X, Loader2, Feather } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Sparkles, X, Loader2, Feather, Mic, MicOff } from 'lucide-react';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
@@ -7,6 +7,10 @@ import Button from '../ui/Button';
 const AIGeneratorModal = ({ isOpen, onClose }) => {
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(true);
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const recognitionRef = useRef(null);
   const { generateForm, isGenerating } = useFormBuilderStore();
   const navigate = useNavigate();
 
@@ -14,8 +18,69 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
     if (!isOpen) {
       setPrompt('');
       setError(null);
+      setIsListening(false);
+      setInterimTranscript('');
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      return;
+    }
+    const rec = new SpeechRecognition();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+
+    rec.onstart = () => setIsListening(true);
+    rec.onerror = () => {
+      setIsListening(false);
+      setError('Voice input encountered an issue. Please type your prompt.');
+      setInterimTranscript('');
+    };
+    rec.onend = () => {
+      setIsListening(false);
+      setInterimTranscript('');
+    };
+    rec.onresult = (event) => {
+      let finalText = '';
+      let interimText = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        if (res.isFinal) {
+          finalText += res[0].transcript;
+        } else {
+          interimText += res[0].transcript;
+        }
+      }
+
+      if (finalText.trim()) {
+        setPrompt((prev) => {
+          const base = prev ? `${prev.trim()} ` : '';
+          return `${base}${finalText.trim()}`;
+        });
+      }
+      setInterimTranscript(interimText.trim());
+    };
+
+    recognitionRef.current = rec;
+    return () => {
+      rec.abort();
+    };
+  }, []);
+
+  const handleToggleListening = () => {
+    if (!recognitionRef.current) return;
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      setError(null);
+      recognitionRef.current.start();
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -39,7 +104,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-scale-in">
+      <div className="relative w-full max-w-3xl overflow-hidden rounded-3xl bg-white/10 shadow-2xl animate-scale-in backdrop-blur">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-blue-50 opacity-70" />
         <div className="relative grid gap-0 md:grid-cols-[1.2fr,0.8fr]">
           <div className="p-6 md:p-8 flex flex-col gap-4">
@@ -63,7 +128,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               </button>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-3">
+            <div className="rounded-2xl border border-gray-200 bg-white/10 px-4 py-3">
               <p className="text-sm text-gray-700">
                 Describe the form you want. Fomzy will suggest sections, questions, and a fitting theme.
               </p>
@@ -85,6 +150,33 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               className="w-full h-32 md:h-40 p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-all resize-none text-sm outline-none"
               disabled={isGenerating}
             />
+
+            {interimTranscript && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                Listening: {interimTranscript}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-xs text-gray-600">
+              {!speechSupported ? (
+                <span className="text-red-500">Voice input not supported in this browser.</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleToggleListening}
+                  disabled={isGenerating}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                    isListening
+                      ? 'border-sky-500 text-sky-700 bg-sky-50'
+                      : 'border-gray-200 text-gray-700 hover:border-sky-200 hover:bg-sky-50'
+                  }`}
+                >
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  {isListening ? 'Listening… tap to stop' : 'Speak instead'}
+                </button>
+              )}
+              <span className="text-gray-400"></span>
+            </div>
 
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
