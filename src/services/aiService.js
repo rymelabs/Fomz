@@ -14,29 +14,28 @@ export const generateFormFromPrompt = async (prompt) => {
         resolve({
           title: "AI Generated Form",
           description: `Form generated based on: "${prompt}"`,
-          questions: [
+          theme: "blue",
+          sections: [
             {
-              id: "q1",
-              type: "short-text",
-              title: "Full Name",
-              required: true,
-              placeholder: "John Doe"
-            },
-            {
-              id: "q2",
-              type: "email",
-              title: "Email Address",
-              required: true,
-              placeholder: "john@example.com"
-            },
-            {
-              id: "q3",
-              type: "long-text",
-              title: "Comments",
-              required: false,
-              placeholder: "Share your thoughts..."
+              title: "Contact Information",
+              description: "Tell us how to reach you",
+              questions: [
+                {
+                  type: "short-text",
+                  title: "Full Name",
+                  required: true,
+                  placeholder: "John Doe"
+                },
+                {
+                  type: "email",
+                  title: "Email Address",
+                  required: true,
+                  placeholder: "john@example.com"
+                }
+              ]
             }
-          ]
+          ],
+          questions: []
         });
       }, 2000);
     });
@@ -54,6 +53,22 @@ export const generateFormFromPrompt = async (prompt) => {
           {
             "title": "Form Title",
             "description": "Form Description",
+            "theme": "blue|green|mixed|soft|minimal|dark|coral|forest|aurora|sandstone|neon|berry|slate|sunrise|teal|violet|citrus|cobalt|blush|lagoon|latte",
+            "sections": [
+              {
+                "title": "Section Title",
+                "description": "Section description",
+                "questions": [
+                  {
+                    "type": "short-text" | "long-text" | "multiple-choice" | "checkbox" | "dropdown" | "email" | "number" | "date" | "rating" | "image",
+                    "title": "Question Text",
+                    "required": boolean,
+                    "placeholder": "Optional placeholder",
+                    "options": ["Option 1", "Option 2"] (only for choice types)
+                  }
+                ]
+              }
+            ],
             "questions": [
               {
                 "type": "short-text" | "long-text" | "multiple-choice" | "checkbox" | "dropdown" | "email" | "number" | "date" | "rating" | "image",
@@ -64,6 +79,7 @@ export const generateFormFromPrompt = async (prompt) => {
               }
             ]
           }
+          "sections" is optional, but if present questions should be nested there; "questions" is optional for loose questions.
           Do not include markdown formatting or code blocks.`
         },
         { role: "user", content: `Create a form for: ${prompt}` }

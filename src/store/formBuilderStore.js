@@ -269,9 +269,33 @@ export const useFormBuilderStore = create((set, get) => ({
     set({ isGenerating: true });
     try {
       const aiData = await generateFormFromPrompt(prompt);
-      
-      // Map AI questions to store format
-      const newQuestions = (aiData.questions || []).map(q => ({
+      const theme = aiData.theme || 'blue';
+
+      // Sections and nested questions
+      const sections = (aiData.sections || []).map((s) => ({
+        id: uuidv4(),
+        title: s.title || 'New Section',
+        description: s.description || '',
+        questions: []
+      }));
+
+      const sectionQuestions = (aiData.sections || []).flatMap((s, idx) => {
+        const sectionId = sections[idx]?.id || null;
+        return (s.questions || []).map((q) => ({
+          id: uuidv4(),
+          sectionId,
+          type: q.type || 'short-text',
+          label: q.title || 'Untitled Question',
+          required: q.required || false,
+          placeholder: q.placeholder || '',
+          helpText: '',
+          options: q.options || [],
+          validation: { min: null, max: null, pattern: null }
+        }));
+      });
+
+      // Loose questions
+      const looseQuestions = (aiData.questions || []).map(q => ({
         id: uuidv4(),
         sectionId: null,
         type: q.type || 'short-text',
@@ -283,11 +307,14 @@ export const useFormBuilderStore = create((set, get) => ({
         validation: { min: null, max: null, pattern: null }
       }));
 
+      const newQuestions = [...sectionQuestions, ...looseQuestions];
+
       set({
         title: aiData.title || 'AI Generated Form',
         description: aiData.description || '',
         questions: newQuestions,
-        sections: [], 
+        sections,
+        theme,
         isDirty: true,
         isGenerating: false
       });

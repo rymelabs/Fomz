@@ -89,12 +89,12 @@ export const TimelineChart = ({ responses }) => {
               {/* Bar */}
               <div className="w-full h-full flex items-end justify-center relative">
                 <div 
-                  className={`w-full max-w-[40px] rounded-t-lg transition-all duration-500 ease-out relative group-hover:opacity-90 ${
+                  className={`w-full max-w-[40px] rounded-full transition-all duration-500 ease-out relative group-hover:opacity-90 ${
                     count > 0 ? 'bg-gradient-to-t from-primary-500 to-primary-400 shadow-sm' : 'bg-gray-50'
                   }`}
                   style={{ height: count > 0 ? `${(count / maxCount) * 100}%` : '4px' }}
                 >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-lg"></div>
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -218,7 +218,7 @@ export const ResponsePatterns = ({ responses }) => {
 
             {/* Bar */}
             <div 
-              className={`w-full rounded-t-sm transition-all duration-300 ${
+              className={`w-full rounded-full transition-all duration-300 ${
                 count > 0 
                   ? 'bg-gradient-to-t from-primary-500 to-primary-300 opacity-80 group-hover:opacity-100' 
                   : 'bg-gray-100 h-[2px]'
