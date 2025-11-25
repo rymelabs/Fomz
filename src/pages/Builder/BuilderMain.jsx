@@ -447,7 +447,7 @@ const BuilderMain = () => {
     </div>
     {showFomzyOverlay && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-        <div className="rounded-2xl bg-white px-6 py-4 shadow-2xl flex items-center gap-3 border border-gray-200 animate-fade-in-up">
+        <div className="rounded-full bg-white px-6 py-4 shadow-2xl flex items-center gap-3 border border-gray-200 animate-fade-in-up">
           <span className="inline-flex h-5 w-5 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
           <div>
             <p className="text-sm font-semibold text-gray-900">Building with Fomzy</p>
