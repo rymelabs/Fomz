@@ -25,7 +25,7 @@ const NotificationModal = ({ notification, onClose }) => {
             <Bell
               className="h-5 w-5"
               style={{
-                animation: 'bell-ring-interval 180s ease-in-out infinite',
+                animation: 'bell-ring-interval 30s ease-in-out infinite',
                 transformOrigin: '50% 10%',
               }}
             />

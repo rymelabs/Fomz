@@ -53,11 +53,21 @@ const FormAnalytics = () => {
       try {
         const data = await getFormResponses(formId);
         if (!isMounted) return;
-        setResponses(data);
+        const cleanResponses = (data || []).filter((r) => {
+          if (!r || !r.submittedAt) return false;
+          if (!Array.isArray(r.answers)) return false;
+          return r.answers.some((a) => {
+            const val = a?.value;
+            if (Array.isArray(val)) return val.length > 0;
+            return val !== undefined && val !== null && val !== '';
+          });
+        });
+
+        setResponses(cleanResponses);
         setStats({
-          totalResponses: data.length,
-          lastResponse: data[0]?.submittedAt || null,
-          firstResponse: data[data.length - 1]?.submittedAt || null
+          totalResponses: cleanResponses.length,
+          lastResponse: cleanResponses[0]?.submittedAt || null,
+          firstResponse: cleanResponses[cleanResponses.length - 1]?.submittedAt || null
         });
       } catch (error) {
         if (!isMounted) return;

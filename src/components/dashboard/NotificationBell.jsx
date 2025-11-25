@@ -33,7 +33,7 @@ const NotificationBell = ({
           className="h-5 w-5 text-gray-700"
           style={
             unreadCount > 0
-              ? { animation: 'bell-ring-interval 180s ease-in-out infinite', transformOrigin: '50% 10%' }
+              ? { animation: 'bell-ring-interval 30s ease-in-out infinite', transformOrigin: '50% 10%' }
               : undefined
           }
         />
