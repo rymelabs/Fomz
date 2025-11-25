@@ -143,40 +143,40 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g., A customer satisfaction survey for a coffee shop with ratings, a comment box, and contact details."
-              className="w-full h-32 md:h-40 p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-all resize-none text-sm outline-none"
-              disabled={isGenerating}
-            />
+            <div className="relative">
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="e.g., A customer satisfaction survey for a coffee shop with ratings, a comment box, and contact details."
+                className="w-full h-32 md:h-40 pr-12 p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-all resize-none text-sm outline-none"
+                disabled={isGenerating}
+              />
+              {speechSupported ? (
+                <button
+                  type="button"
+                  onClick={handleToggleListening}
+                  disabled={isGenerating}
+                  className={`absolute right-3 top-3 p-2 rounded-full transition ${
+                    isListening
+                      ? 'bg-sky-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+                >
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </button>
+              ) : (
+                <div className="absolute right-3 top-3 text-xs text-gray-400">
+                  Voice not supported
+                </div>
+              )}
+            </div>
 
             {interimTranscript && (
               <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">
                 Listening: {interimTranscript}
               </div>
             )}
-
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              {!speechSupported ? (
-                <span className="text-red-500">Voice input not supported in this browser.</span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleToggleListening}
-                  disabled={isGenerating}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                    isListening
-                      ? 'border-sky-500 text-sky-700 bg-sky-50'
-                      : 'border-gray-200 text-gray-700 hover:border-sky-200 hover:bg-sky-50'
-                  }`}
-                >
-                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  {isListening ? 'Listening… tap to stop' : 'Speak instead'}
-                </button>
-              )}
-              <span className="text-gray-400"></span>
-            </div>
 
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -206,7 +206,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
                 <Button
                   onClick={handleGenerate}
                   disabled={!prompt.trim() || isGenerating}
-                  className="bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 hover:from-sky-500 hover:via-blue-600 hover:to-indigo-600 text-white border-none shadow-md hover:shadow-xl transition"
+                  className="bg-blue-500 hover:bg-blue-600 text-white border-none shadow-md hover:shadow-xl transition"
                 >
                   {isGenerating ? (
                     <>
@@ -226,8 +226,8 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
 
           <div className="hidden md:flex flex-col gap-4 border-l border-gray-200 bg-white/60 p-6">
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-blue-800">
-              <p className="text-sm font-semibold">What Fomzy can do</p>
-              <ul className="mt-2 space-y-1 text-sm">
+              <p className="text-xs font-semibold">What Fomzy can do</p>
+              <ul className="mt-2 space-y-1 text-xs">
                 <li className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-blue-500"></span>
                   Draft sections & sensible question types
@@ -243,8 +243,8 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               </ul>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-blue-800">
-              <p className="text-sm font-semibold">Suggestions</p>
-              <p className="text-sm mt-2">Include audience, tone, required fields, and any branching logic you want.</p>
+              <p className="text-xs font-semibold">Suggestions</p>
+              <p className="text-xs mt-2">Include audience, tone, required fields, and any branching logic you want.</p>
             </div>
           </div>
         </div>
