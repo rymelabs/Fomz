@@ -44,11 +44,21 @@ const BuilderMain = () => {
         return;
       }
 
+      // If coming from create page with title/description, set them
+      if (location.state?.title || location.state?.description) {
+        updateFormInfo({
+          title: location.state.title || '',
+          description: location.state.description || ''
+        });
+        initializedRef.current = true;
+        return;
+      }
+
       // Initialize with new empty form
       initForm();
       initializedRef.current = true;
     }
-  }, [initForm, location.state]);
+  }, [initForm, location.state, updateFormInfo]);
 
   useEffect(() => {
     const fid = searchParams.get('formId');

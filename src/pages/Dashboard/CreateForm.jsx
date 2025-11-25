@@ -10,7 +10,7 @@ const CreateForm = () => {
 
   const handleCreate = () => {
     addQuestion('short-text');
-    navigate('/builder');
+    navigate('/builder', { state: { title, description } });
   };
 
   return (
