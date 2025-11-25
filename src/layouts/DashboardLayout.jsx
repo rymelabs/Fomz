@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FileEdit, BarChart3, LogOut, User2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import NotificationBell from '../components/dashboard/NotificationBell';
 import NotificationModal from '../components/dashboard/NotificationModal';
 import { useNotificationStore } from '../store/notificationStore';
+import { useThemeStore } from '../store/themeStore';
 
 const navItems = [
   { label: 'My Forms', icon: LayoutDashboard, path: '/dashboard' },
@@ -25,6 +25,7 @@ const DashboardLayout = ({ children }) => {
     stopListening,
     acknowledgeHighPriority,
   } = useNotificationStore();
+  const appBackground = useThemeStore((state) => state.appBackground || '#ffffff');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -50,7 +51,7 @@ const DashboardLayout = ({ children }) => {
   }, [user, startListening, stopListening]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: appBackground }}>
       <div className="pointer-events-none absolute -top-32 right-0 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-[#7CA7FF] via-[#7CA7FF]/60 to-transparent opacity-60 blur-3xl"></div>
       <div className="pointer-events-none absolute bottom-0 -left-32 h-[30rem] w-[30rem] rounded-full bg-gradient-to-tl from-[#B6F3CF] via-[#B6F3CF]/70 to-transparent opacity-90 blur-3xl"></div>
 
@@ -102,6 +103,16 @@ const DashboardLayout = ({ children }) => {
                   </button>
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                      <button
+                        onClick={() => {
+                          navigate('/dashboard/profile');
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <User2 className="h-4 w-4" />
+                        Profile
+                      </button>
                       <button
                         onClick={() => {
                           logout();

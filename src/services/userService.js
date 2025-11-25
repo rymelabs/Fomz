@@ -5,7 +5,8 @@ import {
   GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  deleteUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -37,6 +38,28 @@ export const signUpWithEmail = async (email, password, displayName) => {
     console.error('Error signing up:', error);
     throw error;
   }
+};
+
+/**
+ * Update the current user's display name
+ */
+export const updateDisplayName = async (displayName) => {
+  if (!auth.currentUser) throw new Error('No authenticated user');
+  await updateProfile(auth.currentUser, { displayName });
+  await setDoc(
+    doc(db, 'users', auth.currentUser.uid),
+    { displayName, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+  return auth.currentUser;
+};
+
+/**
+ * Delete the current user account
+ */
+export const deleteAccount = async () => {
+  if (!auth.currentUser) throw new Error('No authenticated user');
+  await deleteUser(auth.currentUser);
 };
 
 /**

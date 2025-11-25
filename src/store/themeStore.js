@@ -407,12 +407,17 @@ export const useThemeStore = create(
   persist(
     (set) => ({
       currentTheme: 'blue',
+      appBackground: '#f8fafc',
       themes,
       
       setTheme: (themeName) => {
         if (themes[themeName]) {
           set({ currentTheme: themeName });
         }
+      },
+
+      setAppBackground: (color) => {
+        set({ appBackground: color });
       },
       
       getTheme: (themeName) => {
@@ -432,7 +437,8 @@ export const useThemeStore = create(
         return { ...state, themes };
       },
       partialize: (state) => ({
-        currentTheme: state.currentTheme
+        currentTheme: state.currentTheme,
+        appBackground: state.appBackground
       })
     }
   )
