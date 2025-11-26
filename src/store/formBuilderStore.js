@@ -309,12 +309,19 @@ export const useFormBuilderStore = create((set, get) => ({
 
       const newQuestions = [...sectionQuestions, ...looseQuestions];
 
+      // Handle font family from AI
+      const fontFamily = aiData.fontFamily || 'poppins';
+
       set({
         title: aiData.title || 'AI Generated Form',
         description: aiData.description || '',
         questions: newQuestions,
         sections,
         theme,
+        style: {
+          ...get().style,
+          fontFamily
+        },
         isDirty: true,
         isGenerating: false
       });

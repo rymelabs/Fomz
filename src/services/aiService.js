@@ -54,6 +54,7 @@ export const generateFormFromPrompt = async (prompt) => {
             "title": "Form Title",
             "description": "Form Description",
             "theme": "blue|green|mixed|soft|minimal|dark|coral|forest|aurora|sandstone|neon|berry|slate|sunrise|teal|violet|citrus|cobalt|blush|lagoon|latte",
+            "fontFamily": "poppins|inter|roboto|lato|opensans|montserrat|raleway|sourcesans|playfair|serif|mono|dancing|pacifico",
             "sections": [
               {
                 "title": "Section Title",
@@ -80,6 +81,7 @@ export const generateFormFromPrompt = async (prompt) => {
             ]
           }
           "sections" is optional, but if present questions should be nested there; "questions" is optional for loose questions.
+          "fontFamily" is optional. Choose based on the form's purpose: use "dancing" or "pacifico" for creative/artistic forms, "playfair" or "serif" for elegant/formal forms, "mono" for technical forms, and modern sans-serif fonts like "poppins", "inter", or "montserrat" for professional/business forms.
           Do not include markdown formatting or code blocks.`
         },
         { role: "user", content: `Create a form for: ${prompt}` }
