@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { GripVertical, Image as ImageIcon, Loader2, Upload } from 'lucide-react';
 import Input from '../ui/Input';
 import Toggle from '../ui/Toggle';
@@ -35,11 +35,26 @@ const QuestionCard = ({ question, index, total }) => {
   
   const { user } = useUserStore();
   const [uploading, setUploading] = useState(false);
+  const [contentHeight, setContentHeight] = useState('auto');
+  const contentRef = useRef(null);
 
   const isActive = currentQuestionIndex === index;
   const isOptionsQuestion = ['multiple-choice', 'checkbox', 'dropdown'].includes(question.type);
   const isTextQuestion = ['short-text', 'long-text'].includes(question.type);
   const isNumberQuestion = question.type === 'number';
+
+  // Animate height changes
+  useEffect(() => {
+    if (contentRef.current) {
+      const observer = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          setContentHeight(entry.contentRect.height);
+        }
+      });
+      observer.observe(contentRef.current);
+      return () => observer.disconnect();
+    }
+  }, [question.type, isOptionsQuestion, isTextQuestion, isNumberQuestion]);
 
   const handleQuestionChange = (field, value) => {
     updateQuestion(question.id, { [field]: value });
@@ -98,7 +113,7 @@ const QuestionCard = ({ question, index, total }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl border transition ${
+      className={`bg-white rounded-xl border transition-all duration-300 ease-out ${
         isActive ? 'border-primary-400 ring-1 ring-primary-200' : 'border-gray-200'
       }`}
       onClick={() => setCurrentQuestion(index)}
@@ -106,7 +121,7 @@ const QuestionCard = ({ question, index, total }) => {
       <div className="flex items-start gap-3 p-4">
         <GripVertical className="h-5 w-5 text-gray-400 mt-2" />
 
-        <div className="flex-1 space-y-4">
+        <div className="flex-1">
           {/* Question header */}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex-1">
@@ -137,9 +152,12 @@ const QuestionCard = ({ question, index, total }) => {
             </div>
           </div>
 
-          {/* Section break displays less fields */}
-          {question.type !== 'section' && (
-            <>
+          {/* Animated content container */}
+          <div 
+            className="overflow-hidden transition-[height] duration-300 ease-out"
+            style={{ height: question.type === 'section' ? 0 : contentHeight }}
+          >
+            <div ref={contentRef} className="space-y-4 pt-4">
               <Input
                 label="Help text"
                 value={question.helpText}
@@ -239,8 +257,8 @@ const QuestionCard = ({ question, index, total }) => {
                 onChange={(checked) => handleQuestionChange('required', checked)}
                 description="Respondents must answer before continuing"
               />
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
 
