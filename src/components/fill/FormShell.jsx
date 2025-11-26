@@ -207,8 +207,8 @@ const FormShell = ({ children, showProgress = false, progressPercent = 0, form, 
 
       <div className="relative z-10 flex min-h-screen flex-col pt-44">
 
-        <main className="flex flex-1 items-center justify-center px-6 py-10">
-          <div className="w-full max-w-md">{children}</div>
+        <main className="flex flex-1 items-center justify-center px-6 py-10 overflow-visible">
+          <div className="w-full max-w-md overflow-visible">{children}</div>
         </main>
 
         <footer className="px-6 pb-10 text-center text-[0.65rem] text-gray-500">

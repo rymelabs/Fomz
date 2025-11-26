@@ -149,13 +149,13 @@ const QuestionStep = ({
       progressPercent={progressPercent}
       form={form}
     >
-      <div style={{ height }} className="transition-[height] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]">
+      <div style={{ height }} className="transition-[height] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] overflow-visible">
         <div
           ref={cardRef}
           key={cardKey}
-          className={`relative overflow-hidden rounded-[32px] border border-white bg-white/10 backdrop-blur-sm p-8 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
+          className={`relative overflow-visible rounded-[32px] border border-white bg-white/10 backdrop-blur-sm p-8 shadow-[var(--fomz-card-shadow)] ${animationClass}`}
         >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from white via-white/70 to-transparent opacity-70"></div>
+        <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from white via-white/70 to-transparent opacity-70 overflow-hidden"></div>
         <div className="relative space-y-12">
           {section && (
             <div className="pt-2 pb-8">
