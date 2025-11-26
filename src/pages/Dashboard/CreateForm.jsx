@@ -67,19 +67,19 @@ const CreateForm = () => {
             />
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-1.5 flex-nowrap">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="transition-transform active:scale-95 text-[9px] px-2.5 py-1 md:px-3 md:py-1.5 md:text-sm">
+          <div className="pt-6 flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-end">
+            <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="w-full md:w-auto transition-transform active:scale-95 text-sm">
               Cancel
             </Button>
             <Button 
               onClick={handleCreateWithAI} 
               disabled={isGenerating}
-              className="inline-flex items-center gap-1.5 rounded-full border border-sky-500 bg-sky-50 px-2.5 py-1 text-[9px] font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95 md:px-3 md:py-1.5 md:text-sm md:gap-2"
+              className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-full border border-sky-500 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95"
             >
-              {isGenerating ? <Loader2 className="h-3 w-3 animate-spin md:h-4 md:w-4" /> : <Sparkles className="h-3 w-3 text-sky-600 md:h-4 md:w-4" />}
+              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-sky-600" />}
               Create with Fomzy
             </Button>
-            <Button onClick={handleCreate} variant="outline" size="sm" className="border-black text-black transition-all active:scale-95 text-[9px] px-2.5 py-1 md:px-3 md:py-1.5 md:text-sm">
+            <Button onClick={handleCreate} variant="outline" size="sm" className="w-full md:w-auto border-black text-black transition-all active:scale-95 text-sm">
               Start Building
             </Button>
           </div>
