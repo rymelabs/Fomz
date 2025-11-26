@@ -26,6 +26,23 @@ const componentMap = {
   'image': ImageBlock
 };
 
+const fontMap = {
+  sans: 'font-sans',
+  poppins: 'font-poppins',
+  inter: 'font-inter',
+  roboto: 'font-roboto',
+  lato: 'font-lato',
+  opensans: 'font-opensans',
+  montserrat: 'font-montserrat',
+  raleway: 'font-raleway',
+  sourcesans: 'font-sourcesans',
+  playfair: 'font-playfair',
+  serif: 'font-serif',
+  mono: 'font-mono',
+  dancing: 'font-dancing',
+  pacifico: 'font-pacifico'
+};
+
 const QuestionStep = ({
   questions = [],
   section,
@@ -50,6 +67,8 @@ const QuestionStep = ({
   const [height, setHeight] = useState('auto');
   const cardRef = useRef(null);
   const cardKey = visibleQuestions.map((q) => q.id).join('-');
+  const fontFamily = form?.style?.fontFamily || 'poppins';
+  const fontClass = fontMap[fontFamily] || 'font-poppins';
 
   useEffect(() => {
     setErrors({});
@@ -143,7 +162,7 @@ const QuestionStep = ({
               <p className="text-xs uppercase tracking-[0.4em] text-gray-600 font-medium">
                 Section {sectionIndex + 1} of {totalSections}
               </p>
-              <p className="font-display text-xl text-gray-800 mt-1">{section.title}</p>
+              <p className={`text-xl text-gray-800 mt-1 ${fontClass}`}>{section.title}</p>
               {section.description && <p className="text-sm text-gray-600 mt-1">{section.description}</p>}
             </div>
           )}
@@ -162,10 +181,10 @@ const QuestionStep = ({
               return (
                 <div key={question.id} className="space-y-4">
                   <div className="space-y-3">
-                    <p className="text-4xl font-semibold text-gray-500 mb-6">
+                    <p className={`text-4xl font-semibold text-gray-500 mb-6 ${fontClass}`}>
                       {String(questionNumber).padStart(2, '0')}
                     </p>
-                    <p className="text-xl text-gray-900">{question.label || 'Untitled question'}</p>
+                    <p className={`text-xl text-gray-900 ${fontClass}`}>{question.label || 'Untitled question'}</p>
                     {question.helpText && <p className="text-gray-500">{question.helpText}</p>}
                   </div>
 
@@ -174,6 +193,7 @@ const QuestionStep = ({
                       question={question}
                       value={value}
                       onChange={(val) => handleInputChange(question.id, val)}
+                      fontClass={fontClass}
                     />
                     {error && <p className="mt-2 text-sm text-red-500 animate-shake">{error}</p>}
                   </div>

@@ -2,9 +2,28 @@ import React from 'react';
 import FormShell from '../../components/fill/FormShell';
 import { useTheme } from '../../hooks/useTheme';
 
+const fontMap = {
+  sans: 'font-sans',
+  poppins: 'font-poppins',
+  inter: 'font-inter',
+  roboto: 'font-roboto',
+  lato: 'font-lato',
+  opensans: 'font-opensans',
+  montserrat: 'font-montserrat',
+  raleway: 'font-raleway',
+  sourcesans: 'font-sourcesans',
+  playfair: 'font-playfair',
+  serif: 'font-serif',
+  mono: 'font-mono',
+  dancing: 'font-dancing',
+  pacifico: 'font-pacifico'
+};
+
 const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
   const { themeData } = useTheme();
   const accent = themeData?.primaryColor || '#2563eb';
+  const fontFamily = form?.style?.fontFamily || 'poppins';
+  const fontClass = fontMap[fontFamily] || 'font-poppins';
 
   return (
     <FormShell showProgress progressPercent={100} form={form}>
@@ -13,7 +32,7 @@ const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
         <div className="relative space-y-6">
           <div className="animate-text-enter">
             <p className="text-xs uppercase tracking-[0.5em] text-gray-500">Review</p>
-            <p className="font-display text-2xl text-gray-900">Make sure everything looks right</p>
+            <p className={`text-2xl text-gray-900 ${fontClass}`}>Make sure everything looks right</p>
           </div>
 
           <div className="space-y-2 animate-text-enter" style={{ animationDelay: '0.1s' }}>
@@ -23,8 +42,8 @@ const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
                 <div key={question.id} className="rounded-xl border border-gray-200/60 bg-white/80 px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-500 truncate">{question.label || 'Untitled question'}</p>
-                      <p className="text-sm text-gray-900 truncate">
+                      <p className={`text-xs font-medium text-gray-500 truncate ${fontClass}`}>{question.label || 'Untitled question'}</p>
+                      <p className={`text-sm text-gray-900 truncate ${fontClass}`}>
                         {answer ? (Array.isArray(answer) ? answer.join(', ') : answer) : <span className="text-gray-400 italic">No answer</span>}
                       </p>
                     </div>

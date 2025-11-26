@@ -6,7 +6,8 @@ const EmailInput = ({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   return (
     <Input
@@ -18,6 +19,7 @@ const EmailInput = ({
       disabled={disabled}
       required={question.required}
       style={{ borderRadius: '9999px' }}
+      className={fontClass}
     />
   );
 };

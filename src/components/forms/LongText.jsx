@@ -5,7 +5,8 @@ const LongText = ({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   return (
     <div>
@@ -18,7 +19,7 @@ const LongText = ({
         minLength={question.validation?.min}
         maxLength={question.validation?.max}
         rows={5}
-        className="w-full px-4 py-2 rounded-[10px] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none placeholder:text-sm text-black"
+        className={`w-full px-4 py-2 rounded-[10px] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none placeholder:text-sm text-black ${fontClass}`}
       />
       {error && (
         <p className="mt-1 text-sm text-red-600">{error}</p>

@@ -6,7 +6,8 @@ const MultipleChoice = ({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   return (
     <div className="space-y-3">
@@ -19,6 +20,7 @@ const MultipleChoice = ({
           checked={value === option}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
+          labelClassName={fontClass}
         />
       ))}
       {error && (

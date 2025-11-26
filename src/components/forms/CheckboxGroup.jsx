@@ -6,7 +6,8 @@ const CheckboxGroup = ({
   value = [], 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   const handleCheckboxChange = (option) => {
     const newValue = value.includes(option)
@@ -24,6 +25,7 @@ const CheckboxGroup = ({
           checked={value.includes(option)}
           onChange={() => handleCheckboxChange(option)}
           disabled={disabled}
+          labelClassName={fontClass}
         />
       ))}
       {error && (

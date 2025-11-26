@@ -6,7 +6,8 @@ const DateInput = ({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   return (
     <Input
@@ -16,6 +17,7 @@ const DateInput = ({
       error={error}
       disabled={disabled}
       required={question.required}
+      className={fontClass}
     />
   );
 };

@@ -6,7 +6,8 @@ const ShortText = ({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   return (
     <Input
@@ -21,6 +22,7 @@ const ShortText = ({
       maxLength={question.validation?.max}
       pattern={question.validation?.pattern}
       style={{ borderRadius: '9999px' }}
+      className={fontClass}
     />
   );
 };

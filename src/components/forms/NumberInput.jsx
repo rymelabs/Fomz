@@ -6,7 +6,8 @@ const NumberInput = ({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  fontClass = ''
 }) => {
   return (
     <Input
@@ -19,6 +20,7 @@ const NumberInput = ({
       required={question.required}
       min={question.validation?.min}
       max={question.validation?.max}
+      className={fontClass}
     />
   );
 };
