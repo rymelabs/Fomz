@@ -4,6 +4,7 @@ import { generateFormFromPrompt } from '../services/aiService';
 
 const defaultFormState = {
   id: null,
+  draftId: null, // Track the draft ID separately from form ID
   title: 'Untitled Form',
   description: '',
   theme: 'blue',
@@ -33,6 +34,7 @@ export const useFormBuilderStore = create((set, get) => ({
   isDirty: false,
   isSaving: false,
   isGenerating: false,
+  lastSavedAt: null, // Track when the form was last saved
 
   // Initialize form (new or existing)
   initForm: (formData = null) => {
@@ -44,11 +46,17 @@ export const useFormBuilderStore = create((set, get) => ({
         style: { ...defaultFormState.style, ...(formData.style || {}) },
         settings: { ...defaultFormState.settings, ...(formData.settings || {}) }
       };
-      set({ ...mergedData, isDirty: false });
+      set({ ...mergedData, isDirty: false, lastSavedAt: new Date() });
     } else {
-      set({ ...defaultFormState, isDirty: false });
+      set({ ...defaultFormState, isDirty: false, draftId: null, lastSavedAt: null });
     }
   },
+
+  // Set draft ID
+  setDraftId: (draftId) => set({ draftId }),
+
+  // Mark as saved with timestamp
+  markSaved: () => set({ isDirty: false, lastSavedAt: new Date() }),
 
   // Update basic info
   updateFormInfo: (updates) => set((state) => ({
@@ -177,11 +185,9 @@ export const useFormBuilderStore = create((set, get) => ({
 
   // Save state
   setSaving: (isSaving) => set({ isSaving }),
-  
-  markSaved: () => set({ isDirty: false }),
 
   // Reset form
-  resetForm: () => set({ ...defaultFormState, currentQuestionIndex: null, isDirty: false }),
+  resetForm: () => set({ ...defaultFormState, currentQuestionIndex: null, isDirty: false, draftId: null, lastSavedAt: null }),
 
   // Section management
   addSection: (title = 'New Section') => {

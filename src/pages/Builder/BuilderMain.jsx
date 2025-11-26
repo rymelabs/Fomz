@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Layout, Eye, Edit } from 'lucide-react';
+import { Plus, Layout, Eye, Edit, Cloud, CloudOff } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import QuestionCard from '../../components/builder/QuestionCard';
 import ThemeSelector from '../../components/builder/ThemeSelector';
@@ -10,9 +10,11 @@ import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { getForm } from '../../services/formService';
+import { hasLocalDraft } from '../../services/draftService';
 import { useNavigate } from 'react-router-dom';
 import { Feather } from 'lucide-react';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
+import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
 
 const BuilderMain = () => {
@@ -29,12 +31,18 @@ const BuilderMain = () => {
     updateSection,
     initForm,
     saveForm,
-    isSaving
+    isSaving,
+    loadLocalDraft
   } = useFormBuilder();
-  const { generateForm, isGenerating } = useFormBuilderStore((state) => ({
+  const { generateForm, isGenerating, isDirty, lastSavedAt, draftId, id: formId } = useFormBuilderStore((state) => ({
     generateForm: state.generateForm,
-    isGenerating: state.isGenerating
+    isGenerating: state.isGenerating,
+    isDirty: state.isDirty,
+    lastSavedAt: state.lastSavedAt,
+    draftId: state.draftId,
+    id: state.id
   }));
+  const { user } = useUserStore();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,8 +55,8 @@ const BuilderMain = () => {
 
   useEffect(() => {
     if (!initializedRef.current) {
-      // If coming from AI generator, don't reset the form
-      if (location.state?.fromAI) {
+      // If coming from AI generator or from draft, don't reset the form
+      if (location.state?.fromAI || location.state?.fromDraft) {
         initializedRef.current = true;
         return;
       }
@@ -63,11 +71,19 @@ const BuilderMain = () => {
         return;
       }
 
+      // Check for local draft (for non-logged-in users)
+      if (!user && hasLocalDraft()) {
+        loadLocalDraft();
+        toast('Draft restored', { icon: '📝' });
+        initializedRef.current = true;
+        return;
+      }
+
       // Initialize with new empty form
       initForm();
       initializedRef.current = true;
     }
-  }, [initForm, location.state, updateFormInfo]);
+  }, [initForm, location.state, updateFormInfo, user, loadLocalDraft]);
 
   useEffect(() => {
     const fid = searchParams.get('formId');
@@ -215,7 +231,31 @@ const BuilderMain = () => {
       <div className="space-y-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <header className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all relative">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs uppercase tracking-normal text-gray-500 font-semibold">Form Builder</p>
+            <div className="flex items-center gap-3">
+              <p className="text-xs uppercase tracking-normal text-gray-500 font-semibold">Form Builder</p>
+              {/* Auto-save status indicator */}
+              {!formId && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  {isDirty ? (
+                    <>
+                      <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <span>Saving...</span>
+                    </>
+                  ) : lastSavedAt ? (
+                    <>
+                      {user ? (
+                        <Cloud className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
+                        <CloudOff className="h-3.5 w-3.5 text-gray-400" />
+                      )}
+                      <span className="text-green-600">
+                        {user ? 'Saved to drafts' : 'Saved locally'}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+              )}
+            </div>
             <button
               onClick={saveForm}
               disabled={isSaving}

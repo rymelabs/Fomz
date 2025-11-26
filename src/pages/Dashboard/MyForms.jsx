@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, BarChart3, ExternalLink, Loader2, Sparkles } from 'lucide-react';
+import { Plus, BarChart3, ExternalLink, Loader2, Sparkles, FileEdit } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
 import { getUserForms, publishForm as publishFormService } from '../../services/formService';
+import { getDraftCount } from '../../services/draftService';
 import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -51,6 +52,7 @@ const MyForms = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [draftCount, setDraftCount] = useState(0);
 
   useEffect(() => {
     let unsubscribe = false;
@@ -71,9 +73,13 @@ const MyForms = () => {
 
       try {
         setLoading(true);
-        const data = await getUserForms(user.uid);
+        const [data, drafts] = await Promise.all([
+          getUserForms(user.uid),
+          getDraftCount(user.uid)
+        ]);
         if (!unsubscribe) {
           setForms(data);
+          setDraftCount(drafts);
         }
       } catch (error) {
         console.error('Unable to load forms', error);
@@ -111,7 +117,25 @@ const MyForms = () => {
       <AIGeneratorModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
       
       <div className="flex flex-col gap-4">
-        <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
+        <div className="flex items-center justify-between">
+          <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
+          <button
+            className={`inline-flex items-center gap-1.5 text-sm font-medium transition-all active:scale-95 ${
+              draftCount > 0 
+                ? 'text-amber-600 hover:text-amber-700' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => navigate('/dashboard/drafts')}
+          >
+            <FileEdit className="h-4 w-4" />
+            Drafts
+            {draftCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
+                {draftCount}
+              </span>
+            )}
+          </button>
+        </div>
         <div className="flex flex-wrap gap-3 text-xs uppercase tracking-normal text-gray-500">
           <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-2 py-1.5 text-sm font-semibold text-gray-900 transition-all active:scale-95" onClick={() => navigate('/dashboard/create')}>
             <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-900 text-sm transition-colors group-hover:border-white">+</span>

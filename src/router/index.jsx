@@ -4,6 +4,7 @@ import Intro from '../pages/Landing/Intro';
 import DashboardLayout from '../layouts/DashboardLayout';
 import MyForms from '../pages/Dashboard/MyForms';
 import CreateForm from '../pages/Dashboard/CreateForm';
+import Drafts from '../pages/Dashboard/Drafts';
 import DashboardAnalytics from '../pages/Dashboard/Analytics';
 import FormAnalytics from '../pages/Dashboard/FormAnalytics';
 import BuilderMain from '../pages/Builder/BuilderMain';
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
   {
     path: '/dashboard/create',
     element: withDashboardLayout(CreateForm),
+  },
+  {
+    path: '/dashboard/drafts',
+    element: withDashboardLayout(Drafts),
   },
   {
     path: '/dashboard/analytics',

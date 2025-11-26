@@ -24,6 +24,15 @@ service cloud.firestore {
       }
     }
 
+    // Drafts collection - auto-saved unpublished forms
+    match /drafts/{draftId} {
+      // Allow creating a draft only if the request is authenticated and createdBy matches the authenticated UID
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
+
+      // Allow read/update/delete only for the creator
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+    }
+
     // User profiles (minimal: users can read/write their own profile; admins can read all)
     match /users/{userId} {
       allow read: if request.auth != null && (
