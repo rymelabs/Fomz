@@ -182,9 +182,9 @@ const QuestionStep = ({
             })}
           </div>
 
-          <div className="mt-16 flex flex-col items-center gap-3">
+          <div className="mt-12 flex flex-col items-center gap-2">
             <button
-              className="w-full max-w-sm rounded-full px-8 py-3 font-sans text-lg text-white font-light transition-transform active:scale-95"
+              className="w-full max-w-xs rounded-full px-6 py-2.5 font-sans text-base text-white font-light transition-transform active:scale-95"
               style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
               onClick={handleNext}
             >
@@ -192,7 +192,7 @@ const QuestionStep = ({
             </button>
             <button
               type="button"
-              className={`text-sm ${isFirstCard && !isEditMode ? 'text-gray-300' : 'text-gray-700'}`}
+              className={`text-xs ${isFirstCard && !isEditMode ? 'text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
               onClick={isEditMode ? onBackToReview : (isFirstCard ? undefined : onPrevious)}
               disabled={isFirstCard && !isEditMode}
             >

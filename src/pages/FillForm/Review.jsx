@@ -16,19 +16,19 @@ const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
             <p className="font-display text-2xl text-gray-900">Make sure everything looks right</p>
           </div>
 
-          <div className="space-y-4 animate-text-enter" style={{ animationDelay: '0.1s' }}>
+          <div className="space-y-2 animate-text-enter" style={{ animationDelay: '0.1s' }}>
             {questions.map((question) => {
               const answer = answers[question.id];
               return (
-                <div key={question.id} className="rounded-2xl border border-gray-200/70 bg-white/90 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{question.label || 'Untitled question'}</p>
-                      <p className="mt-2 text-sm text-gray-600">
-                        {answer ? (Array.isArray(answer) ? answer.join(', ') : answer) : 'No answer'}
+                <div key={question.id} className="rounded-xl border border-gray-200/60 bg-white/80 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-500 truncate">{question.label || 'Untitled question'}</p>
+                      <p className="text-sm text-gray-900 truncate">
+                        {answer ? (Array.isArray(answer) ? answer.join(', ') : answer) : <span className="text-gray-400 italic">No answer</span>}
                       </p>
                     </div>
-                    <button className="text-xs uppercase tracking-[0.4em] text-gray-500" onClick={() => onEdit(question.id)}>
+                    <button className="text-xs text-gray-400 hover:text-gray-600 transition-colors shrink-0" onClick={() => onEdit(question.id)}>
                       Edit
                     </button>
                   </div>
@@ -37,18 +37,18 @@ const Review = ({ answers, questions, onEdit, onSubmit, submitting, form }) => {
             })}
           </div>
 
-          <div className="mt-10 flex flex-col items-center gap-4">
+          <div className="mt-8 flex flex-col items-center gap-2">
             <button
-              className="w-full max-w-sm rounded-full px-8 py-3 font-sans text-lg text-white"
+              className="w-full max-w-xs rounded-full px-6 py-2.5 font-sans text-base text-white transition-transform active:scale-95"
               style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
               onClick={onSubmit}
               disabled={submitting}
             >
-              {submitting ? 'Submitting…' : 'Submit form'}
+              {submitting ? 'Submitting…' : 'Submit'}
             </button>
             <button
               type="button"
-              className="text-sm uppercase tracking-[0.4em] text-gray-700"
+              className="text-xs text-gray-500 hover:text-gray-700"
               onClick={() => onEdit(null)}
             >
               Back
