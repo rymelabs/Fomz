@@ -219,7 +219,7 @@ const BuilderMain = () => {
             <button
               onClick={saveForm}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-2.5 py-1 text-xs md:px-3 md:py-1.5 md:text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
               {isSaving ? 'Saving...' : 'Save Form'}
             </button>
@@ -240,33 +240,33 @@ const BuilderMain = () => {
             rows={2}
           />
           
-          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-2">
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-1.5 md:gap-2">
             <button
               onClick={handleAddSection}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+              className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2 py-1 text-xs md:px-3 md:py-1.5 md:text-sm text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3 w-3 md:h-4 md:w-4" />
               Add Section
             </button>
             <button
               onClick={handleChangeLayout}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+              className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2 py-1 text-xs md:px-3 md:py-1.5 md:text-sm text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
             >
-              <Layout className="h-4 w-4" />
+              <Layout className="h-3 w-3 md:h-4 md:w-4" />
               Change Layout
             </button>
             <button
               onClick={handlePreview}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+              className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2.5 py-1 text-xs md:px-4 md:py-2 md:text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-3 w-3 md:h-4 md:w-4" />
               Preview
             </button>
             <button
               onClick={() => addQuestion()}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition-all hover:bg-gray-800 hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs md:px-4 md:py-2 md:text-sm text-white transition-all hover:bg-gray-800 hover:scale-105 active:scale-95"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3 w-3 md:h-4 md:w-4" />
               Add Question
             </button>
           </div>
@@ -277,19 +277,19 @@ const BuilderMain = () => {
             <div className="border border-dashed border-gray-300 rounded-xl p-8 text-center animate-slide-up" style={{ animationDelay: '200ms' }}>
               <h3 className="text-lg font-semibold text-gray-900">No sections or questions yet</h3>
               <p className="text-gray-500 mt-2">Add your first section or question to start building.</p>
-              <div className="mt-4 flex gap-3 justify-center">
+              <div className="mt-4 flex gap-2 md:gap-3 justify-center">
                 <button
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-900 bg-gray-900 px-4 py-2 text-sm text-white transition-all hover:bg-gray-800 hover:scale-105 active:scale-95"
+                  className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs md:px-4 md:py-2 md:text-sm text-white transition-all hover:bg-gray-800 hover:scale-105 active:scale-95"
                   onClick={handleAddSection}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3 w-3 md:h-4 md:w-4" />
                   Add Section
                 </button>
                 <button
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+                  className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2.5 py-1 text-xs md:px-4 md:py-2 md:text-sm text-gray-700 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                   onClick={() => addQuestion()}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3 w-3 md:h-4 md:w-4" />
                   Add Question
                 </button>
               </div>
@@ -308,10 +308,10 @@ const BuilderMain = () => {
                       </div>
                       <button
                         onClick={() => handleEditSection(section.id, section.title)}
-                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-1 text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-1.5 py-0.5 text-[10px] md:px-2 md:py-1 md:text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                         title="Edit section name"
                       >
-                        <Edit className="h-3 w-3" />
+                        <Edit className="h-2.5 w-2.5 md:h-3 md:w-3" />
                         Edit
                       </button>
                     </div>
@@ -321,10 +321,10 @@ const BuilderMain = () => {
                         <div className="border border-dashed border-gray-200 rounded-xl p-6 text-center">
                           <p className="text-gray-500 text-sm">No questions in this section yet.</p>
                           <button
-                            className="mt-2 inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+                            className="mt-2 inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2 py-0.5 text-[10px] md:px-3 md:py-1 md:text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                             onClick={() => addQuestion('short-text', section.id)}
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-2.5 w-2.5 md:h-3 md:w-3" />
                             Add Question
                           </button>
                         </div>
@@ -341,12 +341,12 @@ const BuilderMain = () => {
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                      <span className="text-xs text-gray-500">{sectionQuestions.length} questions</span>
+                      <span className="text-[10px] md:text-xs text-gray-500">{sectionQuestions.length} questions</span>
                       <button
-                        className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
+                        className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2 py-0.5 text-[10px] md:px-3 md:py-1 md:text-xs text-gray-600 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                         onClick={() => addQuestion('short-text', section.id)}
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-2.5 w-2.5 md:h-3 md:w-3" />
                         Add Question
                       </button>
                     </div>
@@ -407,32 +407,32 @@ const BuilderMain = () => {
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end" ref={fomzyMenuRef}>
       {showFomzyMenu && (
         <div
-          className="mb-2 flex flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl transition-all duration-200 ease-out animate-fade-in-up"
+          className="mb-2 flex flex-col gap-1.5 md:gap-2 rounded-2xl border border-gray-200 bg-white p-2 md:p-3 shadow-xl transition-all duration-200 ease-out animate-fade-in-up"
         >
           <button
-            className="inline-flex items-center gap-2 rounded-full border border-sky-200 px-3 py-2 text-sm font-semibold text-sky-700 hover:border-sky-500 hover:bg-sky-50 active:scale-95 transition"
+            className="inline-flex items-center gap-1.5 md:gap-2 rounded-full border border-sky-200 px-2.5 py-1.5 text-xs md:px-3 md:py-2 md:text-sm font-semibold text-sky-700 hover:border-sky-500 hover:bg-sky-50 active:scale-95 transition"
             onClick={() => {
               setShowFomzyMenu(false);
               setShowFomzy(true);
             }}
             disabled={isGenerating}
           >
-            <Feather className="h-4 w-4 text-sky-600" />
+            <Feather className="h-3 w-3 md:h-4 md:w-4 text-sky-600" />
             Create new
           </button>
           <button
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-800 hover:border-sky-200 hover:bg-sky-50 active:scale-95 transition"
+            className="inline-flex items-center gap-1.5 md:gap-2 rounded-full border border-gray-200 px-2.5 py-1.5 text-xs md:px-3 md:py-2 md:text-sm font-semibold text-gray-800 hover:border-sky-200 hover:bg-sky-50 active:scale-95 transition"
             onClick={handleFomzyFill}
             disabled={isGenerating}
           >
             {isGenerating ? (
               <>
-                <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-                Building�
+                <span className="inline-flex h-3 w-3 md:h-4 md:w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+                Building…
               </>
             ) : (
               <>
-                <span className="h-2 w-2 rounded-full bg-sky-500"></span>
+                <span className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-sky-500"></span>
                 Fill this form
               </>
             )}
@@ -446,11 +446,11 @@ const BuilderMain = () => {
           }
           setShowFomzyMenu((prev) => !prev);
         }}
-        className={`inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-4 py-2 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95 ${showFomzyMenu ? 'animate-pulse' : ''}`}
+        className={`inline-flex items-center gap-1.5 md:gap-2 rounded-full border border-sky-200 bg-white px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95 ${showFomzyMenu ? 'animate-pulse' : ''}`}
         title="Ask Fomzy to help"
       >
-        <Feather className="h-4 w-4 text-sky-600" />
-        <span className="text-sm font-semibold text-gray-800">Fomzy</span>
+        <Feather className="h-3 w-3 md:h-4 md:w-4 text-sky-600" />
+        <span className="font-semibold text-gray-800">Fomzy</span>
       </button>
     </div>
     {showFomzyOverlay && (
