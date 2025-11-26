@@ -15,7 +15,7 @@ const Dropdown = ({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         required={question.required}
-        className={`w-full px-4 py-2 border rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-black ${fontClass} ${
+        className={`w-full px-3 py-1.5 border rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-black text-sm bg-white/20 ${fontClass} ${
           error ? 'border-red-500' : 'border-gray-300'
         }`}
       >

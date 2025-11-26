@@ -10,7 +10,7 @@ const Input = forwardRef(({
   icon: Icon,
   ...props 
 }, ref) => {
-  const baseStyles = 'w-full px-4 py-2 border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:scale-[1.01] focus:shadow-md text-black';
+  const baseStyles = 'w-full px-3 py-1.5 border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:scale-[1.01] focus:shadow-md text-black bg-white/20 text-sm';
   
   const errorStyles = error ? 'border-red-500' : 'border-gray-300';
   
