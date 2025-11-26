@@ -55,8 +55,8 @@ const BuilderMain = () => {
 
   useEffect(() => {
     if (!initializedRef.current) {
-      // If coming from AI generator or from draft, don't reset the form
-      if (location.state?.fromAI || location.state?.fromDraft) {
+      // If coming from AI generator, draft, or preview, don't reset the form
+      if (location.state?.fromAI || location.state?.fromDraft || location.state?.fromPreview) {
         initializedRef.current = true;
         return;
       }
@@ -234,27 +234,25 @@ const BuilderMain = () => {
             <div className="flex items-center gap-3">
               <p className="text-xs uppercase tracking-normal text-gray-500 font-semibold">Form Builder</p>
               {/* Auto-save status indicator */}
-              {!formId && (
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  {isDirty ? (
-                    <>
-                      <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                      <span>Saving...</span>
-                    </>
-                  ) : lastSavedAt ? (
-                    <>
-                      {user ? (
-                        <Cloud className="h-3.5 w-3.5 text-green-500" />
-                      ) : (
-                        <CloudOff className="h-3.5 w-3.5 text-gray-400" />
-                      )}
-                      <span className="text-green-600">
-                        {user ? 'Saved to drafts' : 'Saved locally'}
-                      </span>
-                    </>
-                  ) : null}
-                </div>
-              )}
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                {isDirty ? (
+                  <>
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span>Saving...</span>
+                  </>
+                ) : lastSavedAt ? (
+                  <>
+                    {user ? (
+                      <Cloud className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <CloudOff className="h-3.5 w-3.5 text-gray-400" />
+                    )}
+                    <span className="text-green-600">
+                      {formId ? 'Saved' : (user ? 'Saved to drafts' : 'Saved locally')}
+                    </span>
+                  </>
+                ) : null}
+              </div>
             </div>
             <button
               onClick={saveForm}

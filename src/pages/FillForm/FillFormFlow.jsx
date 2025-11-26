@@ -44,6 +44,7 @@ const FillFormFlow = () => {
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [direction, setDirection] = useState('forward');
+  const [isEditMode, setIsEditMode] = useState(false);
   const isSubmittingRef = useRef(false);
   const setTheme = useThemeStore((state) => state.setTheme);
   const { user } = useUserStore();
@@ -251,6 +252,7 @@ const FillFormFlow = () => {
 
   const goToQuestion = (questionId) => {
     setDirection('backward');
+    setIsEditMode(true); // Mark that we're editing from review
     if (!questionId) {
       setStage('question');
       return;
@@ -390,6 +392,11 @@ const FillFormFlow = () => {
         isFirstCard={isFirstCard}
         isLastCard={isLastCard}
         progressPercent={progressPercent}
+        isEditMode={isEditMode}
+        onBackToReview={() => {
+          setIsEditMode(false);
+          setStage('review');
+        }}
       />
     );
   }

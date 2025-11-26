@@ -236,7 +236,7 @@ const Preview = () => {
               <p className="text-xs tracking-[0.2em] text-gray-500">by RymeLabs</p>
             </div>
             <button
-              onClick={() => navigate('/builder')}
+              onClick={() => navigate('/builder', { state: { fromPreview: true } })}
               className="flex items-center gap-2 rounded-full px-4 py-2 bg-black/10 text-gray-800 text-sm font-medium transition-all duration-300 hover:bg-black/20 active:scale-95"
             >
               <X className="h-4 w-4" />

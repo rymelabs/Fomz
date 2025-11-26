@@ -39,7 +39,9 @@ const QuestionStep = ({
   direction = 'forward',
   isFirstCard,
   isLastCard,
-  progressPercent = 0
+  progressPercent = 0,
+  isEditMode = false,
+  onBackToReview
 }) => {
   const visibleQuestions = questions.filter(Boolean);
   const { themeData } = useTheme();
@@ -104,7 +106,11 @@ const QuestionStep = ({
 
   const handleNext = () => {
     if (!validateCard()) return;
-    onNext();
+    if (isEditMode && onBackToReview) {
+      onBackToReview();
+    } else {
+      onNext();
+    }
   };
 
   const handleInputChange = (questionId, value) => {
@@ -182,15 +188,15 @@ const QuestionStep = ({
               style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
               onClick={handleNext}
             >
-              {isLastCard ? 'Review' : 'Next'}
+              {isEditMode ? 'Review' : (isLastCard ? 'Review' : 'Next')}
             </button>
             <button
               type="button"
-              className={`text-sm ${isFirstCard ? 'text-gray-300' : 'text-gray-700'}`}
-              onClick={isFirstCard ? undefined : onPrevious}
-              disabled={isFirstCard}
+              className={`text-sm ${isFirstCard && !isEditMode ? 'text-gray-300' : 'text-gray-700'}`}
+              onClick={isEditMode ? onBackToReview : (isFirstCard ? undefined : onPrevious)}
+              disabled={isFirstCard && !isEditMode}
             >
-              Back
+              {isEditMode ? 'Cancel' : 'Back'}
             </button>
           </div>
         </div>

@@ -72,12 +72,12 @@ export const useFormBuilder = () => {
     migrateOnLogin();
   }, [user, store]);
 
-  // Auto-save to drafts when form changes
+  // Auto-save to drafts when form changes (for new forms)
   const saveToDraft = useCallback(async () => {
     const payload = store.getFormData();
     
-    // Don't save if form is already published
-    if (store.settings?.published || store.id) {
+    // Skip if this is an existing form (will be handled by autoSaveForm)
+    if (store.id) {
       return;
     }
 
@@ -103,17 +103,34 @@ export const useFormBuilder = () => {
     }
   }, [store, user]);
 
+  // Auto-save existing forms when they change
+  const autoSaveForm = useCallback(async () => {
+    if (!user || !store.id) return;
+    
+    const payload = store.getFormData();
+    try {
+      await updateForm(store.id, payload);
+      store.markSaved();
+    } catch (error) {
+      console.error('Error auto-saving form:', error);
+    }
+  }, [store, user]);
+
   // Debounced auto-save when form changes
   useEffect(() => {
-    if (store.isDirty && !store.id) { // Only auto-save drafts, not existing forms
+    if (store.isDirty) {
       // Clear existing timer
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
       }
       
-      // Set new timer
+      // Set new timer - save to drafts or forms depending on whether it's a new or existing form
       autoSaveTimerRef.current = setTimeout(() => {
-        saveToDraft();
+        if (store.id) {
+          autoSaveForm(); // Existing form - save to forms collection
+        } else {
+          saveToDraft(); // New form - save to drafts collection
+        }
       }, AUTO_SAVE_DELAY);
     }
 
@@ -122,7 +139,7 @@ export const useFormBuilder = () => {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [store.isDirty, store.id, saveToDraft]);
+  }, [store.isDirty, store.id, saveToDraft, autoSaveForm]);
 
   // Load local draft on mount (for non-logged-in users)
   const loadLocalDraft = useCallback(() => {
