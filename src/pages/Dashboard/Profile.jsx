@@ -122,22 +122,26 @@ const Profile = () => {
       <div className="grid gap-4 lg:grid-cols-[1fr,1fr]">
         <div className="rounded-xl border border-gray-200 bg-white/80 p-4 backdrop-blur">
           <p className="text-xs font-semibold text-gray-900 mb-3">User info</p>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Input
               label="Display name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              className="px-3 py-1.5 text-sm"
+              containerClassName="space-y-0.5"
             />
             <Input
               label="Email"
               value={user.email || ''}
               disabled
+              className="px-3 py-1.5 text-sm"
+              containerClassName="space-y-0.5"
             />
-            <div className="flex gap-3">
-              <Button size="sm" onClick={handleSaveName} disabled={saving} className="px-3 py-1.5 text-sm">
+            <div className="flex gap-2 pt-1">
+              <Button size="sm" onClick={handleSaveName} disabled={saving} className="px-2.5 py-1 text-xs">
                 {saving ? 'Saving…' : 'Save name'}
               </Button>
-              <Button size="sm" variant="outline" onClick={handleResetPassword} className="px-3 py-1.5 text-sm">
+              <Button size="sm" variant="outline" onClick={handleResetPassword} className="px-2.5 py-1 text-xs">
                 Reset password
               </Button>
             </div>
