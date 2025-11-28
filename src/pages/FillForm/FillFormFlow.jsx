@@ -4,7 +4,7 @@ import Start from './Start';
 import QuestionStep from './QuestionStep';
 import Review from './Review';
 import Success from './Success';
-import { getForm } from '../../services/formService';
+import { getForm, getFormByShareId } from '../../services/formService';
 import { submitResponse } from '../../services/responseService';
 import { useThemeStore } from '../../store/themeStore';
 import { useUserStore } from '../../store/userStore';
@@ -36,7 +36,7 @@ const buildCards = (questionList = []) => {
 };
 
 const FillFormFlow = () => {
-  const { formId } = useParams();
+  const { formId, shareId } = useParams();
   const [form, setForm] = useState(null);
   const [stage, setStage] = useState('start');
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
@@ -52,9 +52,17 @@ const FillFormFlow = () => {
 
   useEffect(() => {
     const loadForm = async () => {
-      if (!formId) return;
+      // Support both /forms/:formId/fill and /fill/:shareId routes
+      if (!formId && !shareId) return;
       try {
-        const doc = await getForm(formId);
+        let doc;
+        if (shareId) {
+          // Load by shareId (for /fill/:shareId route)
+          doc = await getFormByShareId(shareId);
+        } else {
+          // Load by formId (for /forms/:formId/fill route)
+          doc = await getForm(formId);
+        }
         setForm(doc);
         if (doc?.theme) {
           setTheme(doc.theme);
@@ -67,7 +75,7 @@ const FillFormFlow = () => {
     };
 
     loadForm();
-  }, [formId, setTheme]);
+  }, [formId, shareId, setTheme]);
 
   const sections = form?.sections || [];
   const questions = form?.questions || [];

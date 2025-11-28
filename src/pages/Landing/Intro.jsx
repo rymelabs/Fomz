@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '../../store/userStore';
 
 const Intro = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useUserStore();
   const [textIndex, setTextIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 

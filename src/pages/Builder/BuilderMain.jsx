@@ -210,7 +210,14 @@ const BuilderMain = () => {
     }
 
     const prompt = buildFomzyFillPrompt();
-    await generateForm(prompt);
+    const result = await generateForm(prompt, !!user);
+    
+    if (result.error === 'LIMIT_REACHED') {
+      toast.error('Daily AI limit reached! Sign in for unlimited generations.');
+    } else if (!result.success) {
+      toast.error('Failed to generate form. Please try again.');
+    }
+    
     setShowFomzyOverlay(false);
   };
 

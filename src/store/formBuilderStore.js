@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { generateFormFromPrompt } from '../services/aiService';
+import { checkAIUsageLimit, recordAIUsage } from '../services/aiUsageLimitService';
 
 const defaultFormState = {
   id: null,
@@ -270,8 +271,24 @@ export const useFormBuilderStore = create((set, get) => ({
     };
   },
 
+  // Check AI usage limit before generation
+  checkAILimit: (isAuthenticated) => {
+    return checkAIUsageLimit(isAuthenticated);
+  },
+
   // AI Generation
-  generateForm: async (prompt) => {
+  generateForm: async (prompt, isAuthenticated = false) => {
+    // Check usage limit first
+    const limitCheck = checkAIUsageLimit(isAuthenticated);
+    if (!limitCheck.allowed) {
+      set({ isGenerating: false });
+      return {
+        success: false,
+        error: 'LIMIT_REACHED',
+        limitInfo: limitCheck
+      };
+    }
+
     set({ isGenerating: true });
     try {
       const aiData = await generateFormFromPrompt(prompt);
@@ -332,11 +349,21 @@ export const useFormBuilderStore = create((set, get) => ({
         isGenerating: false
       });
       
-      return true;
+      // Record usage for anonymous users
+      recordAIUsage(isAuthenticated);
+      
+      return {
+        success: true,
+        limitInfo: checkAIUsageLimit(isAuthenticated)
+      };
     } catch (error) {
       console.error("Store: AI Generation failed", error);
       set({ isGenerating: false });
-      return false;
+      return {
+        success: false,
+        error: 'GENERATION_FAILED',
+        message: error.message
+      };
     }
   }
 }));

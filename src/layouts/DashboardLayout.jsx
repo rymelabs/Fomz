@@ -6,11 +6,20 @@ import NotificationModal from '../components/dashboard/NotificationModal';
 import { useNotificationStore } from '../store/notificationStore';
 import { useThemeStore } from '../store/themeStore';
 
-const navItems = [
-  { label: 'My Forms', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'Create', icon: FileEdit, path: '/dashboard/create' },
-  { label: 'Analytics', icon: BarChart3, path: '/dashboard/analytics' }
-];
+const getNavItems = (isAuthenticated) => {
+  if (isAuthenticated) {
+    return [
+      { label: 'My Forms', icon: LayoutDashboard, path: '/dashboard' },
+      { label: 'Create', icon: FileEdit, path: '/dashboard/create' },
+      { label: 'Analytics', icon: BarChart3, path: '/dashboard/analytics' }
+    ];
+  } else {
+    return [
+      { label: 'My Local Forms', icon: LayoutDashboard, path: '/local/forms' },
+      { label: 'Create', icon: FileEdit, path: '/dashboard/create' }
+    ];
+  }
+};
 
 const DashboardLayout = ({ children }) => {
   const { user, loading, signInGoogle, logout } = useAuth();
@@ -31,6 +40,8 @@ const DashboardLayout = ({ children }) => {
   const baseBg = currentBg?.base || '#ffffff';
   const blob1 = currentBg?.blob1 || '#7CA7FF';
   const blob2 = currentBg?.blob2 || '#B6F3CF';
+
+  const navItems = getNavItems(Boolean(user));
 
   useEffect(() => {
     const handleClickOutside = (event) => {

@@ -1,6 +1,7 @@
 import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { useFormBuilderStore } from '../store/formBuilderStore';
 import { createForm, updateForm, publishForm as publishFormService } from '../services/formService';
+import { publishFormLocally } from '../services/localFormService';
 import { 
   saveDraft, 
   saveLocalDraft, 
@@ -152,14 +153,24 @@ export const useFormBuilder = () => {
   }, [store]);
 
   const saveForm = useCallback(async () => {
-    if (!user) {
-      throw new Error('Must be signed in to save form');
-    }
-
     const payload = store.getFormData();
     store.setSaving(true);
 
     try {
+      // Anonymous users - save to localStorage
+      if (!user) {
+        const localForm = publishFormLocally(payload);
+        store.updateFormInfo({ 
+          id: localForm.id, 
+          shareId: localForm.shareId,
+          isLocal: true
+        });
+        store.markSaved();
+        clearLocalDraft(); // Clear draft after saving as published form
+        return localForm.id;
+      }
+      
+      // Authenticated users - save to Firestore
       let formId = store.id;
       if (store.id) {
         const updated = await updateForm(store.id, payload);
@@ -192,10 +203,33 @@ export const useFormBuilder = () => {
   }, [store, user]);
 
   const publishForm = useCallback(async () => {
+    const payload = store.getFormData();
+    
+    // Anonymous users - publish locally
     if (!user) {
-      throw new Error('Must be signed in to publish form');
+      store.setSaving(true);
+      try {
+        const localForm = publishFormLocally({
+          ...payload,
+          settings: { ...payload.settings, published: true }
+        });
+        
+        store.updateFormInfo({ 
+          id: localForm.id, 
+          shareId: localForm.shareId,
+          isLocal: true
+        });
+        store.updateSettings({ published: true });
+        store.markSaved();
+        clearLocalDraft(); // Clear draft after publishing
+        
+        return localForm;
+      } finally {
+        store.setSaving(false);
+      }
     }
     
+    // Authenticated users - publish to Firestore
     let formId = store.id;
     if (!formId) {
       formId = await saveForm();

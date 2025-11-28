@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Plus, BarChart3, ExternalLink, Loader2, Sparkles, FileEdit } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Plus, BarChart3, ExternalLink, Loader2, Sparkles, FileEdit, MoreVertical, Trash2, Share2, Pencil, Eye } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
-import { getUserForms, publishForm as publishFormService } from '../../services/formService';
+import { getUserForms, publishForm as publishFormService, deleteForm } from '../../services/formService';
 import { getDraftCount } from '../../services/draftService';
 import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
@@ -53,6 +53,34 @@ const MyForms = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [draftCount, setDraftCount] = useState(0);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDeleteForm = async (formId) => {
+    try {
+      await deleteForm(formId);
+      setForms((prev) => prev.filter((f) => f.id !== formId));
+      toast.success('Form deleted successfully');
+    } catch (error) {
+      console.error('Delete failed', error);
+      toast.error('Failed to delete form');
+    } finally {
+      setDeleteConfirm(null);
+      setOpenMenuId(null);
+    }
+  };
 
   useEffect(() => {
     let unsubscribe = false;
@@ -113,10 +141,10 @@ const MyForms = () => {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 animate-fade-in">
       <AIGeneratorModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
       
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <div className="flex items-center justify-between">
           <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
           <button
@@ -174,7 +202,7 @@ const MyForms = () => {
           </div>
         </Card>
       ) : forms.length === 0 ? (
-        <div className="text-center py-24">
+        <div className="text-center py-24 animate-slide-up" style={{ animationDelay: '200ms' }}>
           <ClipboardIllustration />
           <h3 className="mt-8 font-display text-2xl text-gray-900">You Have No Forms Yet</h3>
           <p className="mt-4 text-gray-600">Create your first form to start collecting responses.</p>
@@ -187,86 +215,137 @@ const MyForms = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
           {forms.map((form, index) => {
-            const previewGradient = themeTileBackgrounds[form.theme] || 'from-[#e0e7ff] via-white to-white text-gray-900';
+            const previewGradient = themeTileBackgrounds[form.theme] || 'from-gray-100 to-gray-200';
             const isPublished = Boolean(form.settings?.published);
             const updatedLabel = form.updatedAt?.toDate?.().toLocaleDateString?.() || 'Recently';
 
             return (
               <div
                 key={form.id}
-                className="group rounded-[24px] md:rounded-[32px] border border-gray-200/80 bg-white/80 p-3 md:p-4 backdrop-blur transition-all duration-300 animate-card-enter opacity-0"
-                style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
+                onClick={() => navigate(`/builder?formId=${form.id}`)}
+                className="group relative flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-3 sm:p-5 transition-all hover:border-gray-400 cursor-pointer animate-card-enter opacity-0"
+                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
               >
-                <div className={`relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/60 bg-gradient-to-br ${previewGradient} h-20 md:h-24 p-3 md:p-4 flex flex-col justify-between transition-transform duration-500`}>
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.4em]">
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 md:px-3 md:py-1 text-[0.45rem] md:text-[0.55rem] text-white">
-                      {isPublished ? 'Published' : 'Draft'}
-                    </span>
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 md:px-3 md:py-1 text-[0.45rem] md:text-[0.55rem] text-white">
-                      {form.responses || 0}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-display text-lg md:text-2xl text-white truncate">{form.title || 'Untitled form'}</p>
-                    <p className="mt-1 md:mt-2 text-xs md:text-sm text-white/80 truncate">
-                      {form.description || 'No description yet'}
-                    </p>
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 pr-2 sm:pr-4 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                        <div className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-gradient-to-br ${previewGradient}`}></div>
+                        <span className={`text-[9px] sm:text-[10px] font-medium uppercase tracking-wider ${isPublished ? 'text-green-600' : 'text-gray-400'}`}>
+                          {isPublished ? 'Published' : 'Draft'}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 truncate" title={form.title}>{form.title || 'Untitled form'}</h3>
+                      <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 truncate">{form.description || 'No description'}</p>
+                    </div>
+                    
+                    <div className="relative" ref={openMenuId === form.id ? menuRef : null}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === form.id ? null : form.id);
+                        }}
+                        className="p-1 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {openMenuId === form.id && (
+                        <div className="absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-lg bg-white shadow-lg border border-gray-200 py-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirm(form.id);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3 md:mt-6 flex flex-col justify-between gap-2 md:gap-3">
-                  <div>
-                    <p className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gray-500">Updated</p>
-                    <p className="text-xs md:text-sm text-gray-900">{updatedLabel}</p>
+
+                <div className="mt-3 sm:mt-6 flex items-center justify-between border-t border-gray-100 pt-3 sm:pt-4">
+                  <div className="flex items-center gap-1 sm:gap-3 text-[10px] sm:text-xs text-gray-500">
+                    <span>{form.responses || 0} <span className="hidden sm:inline">responses</span><span className="sm:hidden">res</span></span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:inline">{updatedLabel}</span>
                   </div>
-                  <button
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-900 w-full transition-all active:scale-95"
-                    onClick={() => navigate(`/builder?formId=${form.id}`)}
-                  >
-                    Open
-                    <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
-                  </button>
-                </div>
-                <div className="mt-3 md:mt-4 flex flex-col gap-2 md:gap-3 text-xs md:text-sm">
-                  {isPublished ? (
-                    <button
-                      className="w-full rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
-                      onClick={async () => {
-                        const url = form.shareId ? `${window.location.origin}/f/${form.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
-                        try {
-                          await navigator.clipboard.writeText(url);
-                          toast.success('Share link copied to clipboard');
-                        } catch (err) {
-                          toast.error('Failed to copy link');
-                        }
-                      }}
-                    >
-                      Share link
-                    </button>
-                  ) : (
-                    <button
-                      className="w-full rounded-full border border-gray-200 px-3 py-1.5 md:px-4 md:py-2 text-gray-700 transition-all active:scale-95"
-                      onClick={async () => {
-                        try {
-                          const result = await publishFormService(form.id, true);
-                          const url = result.shareId ? `${window.location.origin}/f/${result.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
-                          setForms((prev) => prev.map(f => f.id === form.id ? { ...f, settings: { ...(f.settings || {}), published: true }, shareId: result.shareId } : f));
-                          await navigator.clipboard.writeText(url);
-                          toast.success('Published and link copied');
-                        } catch (err) {
-                          console.error('Publish failed', err);
-                          toast.error('Failed to publish form');
-                        }
-                      }}
-                    >
-                      Publish
-                    </button>
-                  )}
+                  
+                  <div className="flex items-center gap-0.5 sm:gap-1">
+                    {isPublished ? (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const url = form.shareId ? `${window.location.origin}/f/${form.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
+                          try {
+                            await navigator.clipboard.writeText(url);
+                            toast.success('Link copied');
+                          } catch (err) {
+                            toast.error('Failed to copy');
+                          }
+                        }}
+                        className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50"
+                        title="Copy Link"
+                      >
+                        <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const result = await publishFormService(form.id, true);
+                            const url = result.shareId ? `${window.location.origin}/f/${result.shareId}` : `${window.location.origin}/forms/${form.id}/fill`;
+                            setForms((prev) => prev.map(f => f.id === form.id ? { ...f, settings: { ...(f.settings || {}), published: true }, shareId: result.shareId } : f));
+                            await navigator.clipboard.writeText(url);
+                            toast.success('Published & Copied');
+                          } catch (err) {
+                            console.error('Publish failed', err);
+                            toast.error('Failed to publish');
+                          }
+                        }}
+                        className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50"
+                        title="Publish"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">Delete Form?</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This action cannot be undone. All responses for this form will also be deleted.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteForm(deleteConfirm)}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-700 active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

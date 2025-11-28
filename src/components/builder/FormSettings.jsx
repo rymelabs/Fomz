@@ -3,17 +3,21 @@ import Toggle from '../ui/Toggle';
 import Input from '../ui/Input';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
+import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
 import Button from '../ui/Button';
+import { AlertCircle, Cloud } from 'lucide-react';
 
 const FormSettings = () => {
-  const { settings, updateSettings, id, shareId } = useFormBuilderStore((state) => ({
+  const { settings, updateSettings, id, shareId, isLocal } = useFormBuilderStore((state) => ({
     settings: state.settings,
     updateSettings: state.updateSettings,
     id: state.id,
-    shareId: state.shareId
+    shareId: state.shareId,
+    isLocal: state.isLocal
   }));
   const { saveForm, publishForm } = useFormBuilder();
+  const { isAuthenticated } = useUserStore();
 
   const handleCopyLink = async () => {
     if (!id) {
@@ -83,6 +87,31 @@ const FormSettings = () => {
 
   return (
     <div className="space-y-4">
+      {/* Local form indicator */}
+      {!isAuthenticated && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-blue-900">Local form (browser only)</p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              This form is saved in your browser. Sign in to sync to the cloud.
+            </p>
+          </div>
+        </div>
+      )}
+      
+      {isLocal && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 flex items-start gap-2">
+          <Cloud className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-orange-900">Form saved locally</p>
+            <p className="text-xs text-orange-700 mt-0.5">
+              Only accessible on this device. Sign in to save to cloud.
+            </p>
+          </div>
+        </div>
+      )}
+      
       <Toggle
         label="Allow multiple submissions"
         description="Let respondents submit more than once"
@@ -100,6 +129,7 @@ const FormSettings = () => {
         description="Email respondents a copy of their answers"
         checked={settings.sendEmailReceipt}
         onChange={(value) => updateSettings({ sendEmailReceipt: value })}
+        disabled={!isAuthenticated}
       />
       <Toggle
         label="Show progress bar"
@@ -109,7 +139,11 @@ const FormSettings = () => {
       />
       <Toggle
         label="Publish form"
-        description="Allow anyone to view and respond to this form"
+        description={
+          !isAuthenticated 
+            ? "Save form locally and generate shareable link" 
+            : "Allow anyone to view and respond to this form"
+        }
         checked={settings.published}
         onChange={(value) => updateSettings({ published: value })}
       />
@@ -123,7 +157,7 @@ const FormSettings = () => {
       />
       <div className="flex gap-2 mt-3 flex-wrap">
         <Button variant="outline" size="sm" onClick={() => saveForm()}>
-          Save
+          {!isAuthenticated ? 'Save Locally' : 'Save'}
         </Button>
         <Button size="sm" onClick={handleCopyLink} disabled={!id && !shareId}>
           Copy link
@@ -132,7 +166,7 @@ const FormSettings = () => {
           Copy embed
         </Button>
         <Button size="sm" onClick={handleShare}>
-          Publish & Share
+          {!isAuthenticated ? 'Publish Locally & Share' : 'Publish & Share'}
         </Button>
       </div>
     </div>

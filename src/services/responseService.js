@@ -12,14 +12,35 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
+import {
+  saveLocalResponse,
+  getLocalResponses,
+  getLocalResponseById,
+  getLocalFormByShareId
+} from './localFormService';
 
 /**
- * Submit a form response
+ * Submit a form response (handles both local and cloud forms)
  */
-export const submitResponse = async (formId, responseData, userId = null) => {
+export const submitResponse = async (formIdOrShareId, responseData, userId = null) => {
   try {
+    // Check if it's a local form by shareId first
+    const localForm = getLocalFormByShareId(formIdOrShareId);
+    if (localForm) {
+      // Save response locally
+      return saveLocalResponse(localForm.shareId, {
+        answers: responseData.answers,
+        submitterId: userId,
+        metadata: {
+          userAgent: navigator.userAgent,
+          ...responseData.metadata
+        }
+      });
+    }
+    
+    // Otherwise, save to Firestore
     const responseDoc = {
-      formId,
+      formId: formIdOrShareId,
       answers: responseData.answers,
       submittedAt: serverTimestamp(),
       submitterId: userId,
@@ -30,7 +51,7 @@ export const submitResponse = async (formId, responseData, userId = null) => {
     };
 
     const docRef = await addDoc(
-      collection(db, 'forms', formId, 'responses'),
+      collection(db, 'forms', formIdOrShareId, 'responses'),
       responseDoc
     );
 
@@ -42,12 +63,19 @@ export const submitResponse = async (formId, responseData, userId = null) => {
 };
 
 /**
- * Get all responses for a form
+ * Get all responses for a form (handles both local and cloud forms)
  */
-export const getFormResponses = async (formId) => {
+export const getFormResponses = async (formIdOrShareId) => {
   try {
+    // Check if it's a local form
+    const localForm = getLocalFormByShareId(formIdOrShareId);
+    if (localForm) {
+      return getLocalResponses(localForm.shareId);
+    }
+    
+    // Otherwise, query Firestore
     const q = query(
-      collection(db, 'forms', formId, 'responses'),
+      collection(db, 'forms', formIdOrShareId, 'responses'),
       orderBy('submittedAt', 'desc')
     );
 

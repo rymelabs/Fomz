@@ -14,6 +14,13 @@ import {
   limit
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { 
+  publishFormLocally, 
+  getLocalFormByShareId, 
+  getLocalFormById,
+  updateLocalForm,
+  deleteLocalForm
+} from './localFormService';
 
 // Project ID for debugging/diagnostics. Avoid logging secrets.
 const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID;
@@ -48,12 +55,17 @@ export const createForm = async (formData, userId) => {
 };
 
 /**
- * Get a form by its shareId
+ * Get a form by its shareId (handles both cloud and local forms)
  */
 export const getFormByShareId = async (shareId) => {
   try {
-    // Query for forms with matching shareId AND settings.published == true
-    // Note: This requires a composite index on [shareId, settings.published]
+    // First, check if it's a local form
+    const localForm = getLocalFormByShareId(shareId);
+    if (localForm) {
+      return localForm;
+    }
+    
+    // Otherwise, query Firestore
     const q = query(
       collection(db, FORMS_COLLECTION),
       where('shareId', '==', shareId),
@@ -89,9 +101,26 @@ export const getFormByShareId = async (shareId) => {
 
 /**
  * Publish a form: set published=true and ensure shareId set.
+ * For local forms (anonymous users), publish to localStorage
+ * For cloud forms (authenticated users), publish to Firestore
  */
-export const publishForm = async (formId, publish = true) => {
+export const publishForm = async (formId, publish = true, isLocal = false) => {
   try {
+    // Handle local form publishing
+    if (isLocal || formId.startsWith('local_')) {
+      const localForm = getLocalFormById(formId);
+      if (!localForm) throw new Error('Local form not found');
+      
+      const updates = {
+        settings: { ...localForm.settings, published: publish },
+        shareId: localForm.shareId || generateShareId(),
+        publishedAt: publish ? new Date().toISOString() : localForm.publishedAt
+      };
+      
+      return updateLocalForm(formId, updates);
+    }
+    
+    // Handle Firestore form publishing
     const formDocRef = doc(db, FORMS_COLLECTION, formId);
     const docSnap = await getDoc(formDocRef);
     if (!docSnap.exists()) throw new Error('Form not found');
@@ -112,10 +141,18 @@ export const publishForm = async (formId, publish = true) => {
 };
 
 /**
- * Get a single form by ID
+ * Get a single form by ID (handles both local and cloud)
  */
 export const getForm = async (formId) => {
   try {
+    // Check if it's a local form
+    if (formId.startsWith('local_')) {
+      const localForm = getLocalFormById(formId);
+      if (localForm) return localForm;
+      throw new Error('Local form not found');
+    }
+    
+    // Otherwise query Firestore
     const docRef = doc(db, FORMS_COLLECTION, formId);
     const docSnap = await getDoc(docRef);
     

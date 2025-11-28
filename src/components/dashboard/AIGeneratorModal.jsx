@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Sparkles, X, Loader2, Feather, Mic, MicOff } from 'lucide-react';
+import { Sparkles, X, Loader2, Feather, Mic, MicOff, AlertCircle, Crown } from 'lucide-react';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
+import { useUserStore } from '../../store/userStore';
+import { getUsageStats } from '../../services/aiUsageLimitService';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 
@@ -10,8 +12,10 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [usageStats, setUsageStats] = useState(null);
   const recognitionRef = useRef(null);
-  const { generateForm, isGenerating } = useFormBuilderStore();
+  const { generateForm, isGenerating, checkAILimit } = useFormBuilderStore();
+  const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,8 +24,12 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
       setError(null);
       setIsListening(false);
       setInterimTranscript('');
+    } else {
+      // Load usage stats when modal opens
+      const stats = getUsageStats(isAuthenticated);
+      setUsageStats(stats);
     }
-  }, [isOpen]);
+  }, [isOpen, isAuthenticated]);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -82,25 +90,73 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
     }
   };
 
-  if (!isOpen) return null;
-
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setError(null);
 
+    // Check limit before generating
+    const limitCheck = checkAILimit(isAuthenticated);
+    if (!limitCheck.allowed) {
+      setError(
+        <div className="space-y-2">
+          <div className="font-semibold">Daily Limit Reached</div>
+          <div>You've used all {limitCheck.limit} free AI generations today.</div>
+          <div className="text-xs">
+            Resets in: {formatTimeUntilReset(limitCheck.resetsAt)}
+          </div>
+          <div className="mt-3 pt-3 border-t border-red-200">
+            <button
+              onClick={() => {
+                onClose();
+                // Navigate to sign in or upgrade page
+              }}
+              className="text-sm font-semibold text-red-700 hover:text-red-800 flex items-center gap-1"
+            >
+              <Crown className="h-4 w-4" />
+              Sign in for unlimited generations
+            </button>
+          </div>
+        </div>
+      );
+      return;
+    }
+
     try {
-      const success = await generateForm(prompt);
-      if (success) {
+      const result = await generateForm(prompt, isAuthenticated);
+      if (result.success) {
+        // Update usage stats
+        setUsageStats(getUsageStats(isAuthenticated));
         navigate('/builder', { state: { fromAI: true } });
         onClose();
+      } else if (result.error === 'LIMIT_REACHED') {
+        setError('Daily limit reached. Sign in for unlimited AI generations!');
       } else {
         setError('Unable to generate form right now. Please try again.');
       }
     } catch (err) {
       console.error('AI generation failed', err);
-      setError('Something went wrong while talking to the AI. Try again in a moment.');
+      setError('Something went wrong. Please try again.');
     }
   };
+
+  const formatTimeUntilReset = (resetsAt) => {
+    if (!resetsAt) return '';
+    
+    const now = new Date();
+    const diff = resetsAt - now;
+    
+    if (diff <= 0) return 'soon';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-fade-in">
@@ -141,6 +197,38 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
                   Theme match
                 </span>
               </div>
+              
+              {/* Usage Stats for Anonymous Users */}
+              {usageStats && !usageStats.isUnlimited && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">
+                      Daily generations: <span className="font-semibold text-gray-900">{usageStats.used}/{usageStats.limit}</span>
+                    </span>
+                    {usageStats.remaining === 0 ? (
+                      <span className="text-red-600 font-semibold">Limit reached</span>
+                    ) : (
+                      <span className="text-gray-500">{usageStats.remaining} left</span>
+                    )}
+                  </div>
+                  <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        usageStats.percentage >= 100 ? 'bg-red-500' : 
+                        usageStats.percentage >= 80 ? 'bg-orange-500' : 
+                        'bg-blue-500'
+                      }`}
+                      style={{ width: `${usageStats.percentage}%` }}
+                    />
+                  </div>
+                  {usageStats.remaining <= 2 && usageStats.remaining > 0 && (
+                    <p className="mt-2 text-xs text-orange-600 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Running low! Sign in for unlimited generations
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="relative">

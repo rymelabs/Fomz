@@ -5,10 +5,13 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
+import { useUserStore } from '../../store/userStore';
+import toast from 'react-hot-toast';
 
 const CreateForm = () => {
   const navigate = useNavigate();
   const { title, description, updateFormInfo, addQuestion, generateForm, isGenerating } = useFormBuilder();
+  const { isAuthenticated } = useUserStore();
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const handleCreate = () => {
@@ -24,9 +27,13 @@ const CreateForm = () => {
 
     const prompt = `Create a form${title.trim() ? ` with title: "${title.trim()}"` : ''}${description.trim() ? ` and description: "${description.trim()}"` : ''}. Include relevant sections and questions.`;
 
-    const success = await generateForm(prompt);
-    if (success) {
+    const result = await generateForm(prompt, isAuthenticated);
+    if (result.success) {
       navigate('/builder', { state: { fromAI: true } });
+    } else if (result.error === 'LIMIT_REACHED') {
+      toast.error('Daily limit reached! Sign in for unlimited AI generations.');
+    } else {
+      toast.error('Failed to generate form. Please try again.');
     }
   };
 
@@ -62,7 +69,7 @@ const CreateForm = () => {
               value={description}
               onChange={(e) => updateFormInfo({ description: e.target.value })}
               rows={4}
-              className="w-full px-4 py-3 border border border-gray-300 rounded-xl bg-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white resize-none text-sm"
+              className="w-full px-4 py-3 border-gray-300 rounded-xl bg-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white resize-none text-sm"
               placeholder="Describe what this form is about..."
             />
           </div>

@@ -14,6 +14,7 @@ import ShortLinkRedirect from '../pages/ShortLinkRedirect';
 import ResponsesDashboard from '../pages/Responses/ResponsesDashboard';
 import Profile from '../pages/Dashboard/Profile';
 import Notifications from '../pages/Dashboard/Notifications';
+import LocalForms from '../pages/Dashboard/LocalForms';
 
 const withDashboardLayout = (Component) => (
   <DashboardLayout>
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
     element: withDashboardLayout(Notifications),
   },
   {
+    path: '/local/forms',
+    element: withDashboardLayout(LocalForms),
+  },
+  {
     path: '/builder',
     element: withDashboardLayout(BuilderMain),
   },
@@ -71,8 +76,20 @@ const router = createBrowserRouter([
     element: <ShortLinkRedirect />
   },
   {
+    path: '/fill/:shareId',
+    element: <FillFormFlow />
+  },
+  {
     path: '/forms/:formId/responses',
     element: withDashboardLayout(ResponsesDashboard),
+  },
+  {
+    path: '/dashboard/forms',
+    element: withDashboardLayout(MyForms),
+  },
+  {
+    path: '*',
+    element: <Intro />,
   },
 ]);
 
