@@ -8,6 +8,46 @@ import toast from 'react-hot-toast';
 import Button from '../ui/Button';
 import { AlertCircle, Cloud } from 'lucide-react';
 
+// Fallback copy function for iOS and older browsers
+const copyToClipboard = async (text) => {
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      // Fall through to fallback
+    }
+  }
+  
+  // Fallback for iOS and older browsers
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-9999px';
+  textArea.style.top = '0';
+  textArea.setAttribute('readonly', '');
+  document.body.appendChild(textArea);
+  
+  // iOS specific handling
+  const range = document.createRange();
+  range.selectNodeContents(textArea);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  textArea.setSelectionRange(0, text.length);
+  
+  let success = false;
+  try {
+    success = document.execCommand('copy');
+  } catch (err) {
+    console.error('Fallback copy failed:', err);
+  }
+  
+  document.body.removeChild(textArea);
+  return success;
+};
+
 const FormSettings = () => {
   const { settings, updateSettings, id, shareId, isLocal } = useFormBuilderStore((state) => ({
     settings: state.settings,
@@ -25,11 +65,10 @@ const FormSettings = () => {
       return;
     }
     const link = shareId ? `${window.location.origin}/f/${shareId}` : `${window.location.origin}/forms/${id}/fill`;
-    try {
-      await navigator.clipboard.writeText(link);
+    const success = await copyToClipboard(link);
+    if (success) {
       toast.success('Form link copied to clipboard');
-    } catch (err) {
-      console.error('Failed to copy form link', err);
+    } else {
       toast.error('Failed to copy link.');
     }
   };
@@ -41,11 +80,10 @@ const FormSettings = () => {
     }
     const src = shareId ? `${window.location.origin}/f/${shareId}` : `${window.location.origin}/forms/${id}/fill`;
     const embed = `<iframe src="${src}" width="100%" height="800" frameborder="0"></iframe>`;
-    try {
-      await navigator.clipboard.writeText(embed);
+    const success = await copyToClipboard(embed);
+    if (success) {
       toast.success('Embed snippet copied to clipboard');
-    } catch (err) {
-      console.error('Failed to copy embed snippet', err);
+    } else {
       toast.error('Failed to copy embed snippet');
     }
   };
@@ -77,8 +115,12 @@ const FormSettings = () => {
       }
 
       const link = finalShareId ? `${window.location.origin}/f/${finalShareId}` : `${window.location.origin}/forms/${finalId}/fill`;
-      await navigator.clipboard.writeText(link);
-      toast.success('Share link copied to clipboard');
+      const success = await copyToClipboard(link);
+      if (success) {
+        toast.success('Share link copied to clipboard');
+      } else {
+        toast.error('Failed to copy share link');
+      }
     } catch (err) {
       console.error('Failed to publish & share', err);
       toast.error('Unable to publish and share the form');
