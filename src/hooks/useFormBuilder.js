@@ -184,7 +184,7 @@ export const useFormBuilder = () => {
         // Delete the draft now that form is saved
         if (store.draftId) {
           try {
-            await deleteDraft(store.draftId);
+            await deleteDraft(store.draftId, user.uid);
             store.setDraftId(null);
             saveDraftId(null); // Clear persisted draftId
           } catch (e) {
@@ -242,7 +242,7 @@ export const useFormBuilder = () => {
     // Delete draft after publishing
     if (store.draftId) {
       try {
-        await deleteDraft(store.draftId);
+        await deleteDraft(store.draftId, user.uid);
         store.setDraftId(null);
         saveDraftId(null); // Clear persisted draftId
       } catch (e) {

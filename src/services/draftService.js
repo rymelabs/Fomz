@@ -107,20 +107,38 @@ export const hasLocalDraft = () => {
  */
 export const saveDraft = async (formData, userId, draftId = null) => {
   try {
-    const draftData = {
-      ...formData,
-      createdBy: userId,
-      updatedAt: serverTimestamp()
-    };
-
     if (draftId) {
-      // Update existing draft
+      // Check if the draft exists and belongs to this user
       const docRef = doc(db, DRAFTS_COLLECTION, draftId);
-      await updateDoc(docRef, draftData);
-      return { id: draftId, ...draftData };
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists() && docSnap.data().createdBy === userId) {
+        // Update existing draft - don't include createdBy in update
+        const updateData = {
+          ...formData,
+          updatedAt: serverTimestamp()
+        };
+        await updateDoc(docRef, updateData);
+        return { id: draftId, ...updateData, createdBy: userId };
+      } else {
+        // Draft doesn't exist or belongs to different user - create new
+        const draftData = {
+          ...formData,
+          createdBy: userId,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        const newDocRef = await addDoc(collection(db, DRAFTS_COLLECTION), draftData);
+        return { id: newDocRef.id, ...draftData };
+      }
     } else {
-      // Create new draft
-      draftData.createdAt = serverTimestamp();
+      // Create new draft - include createdBy
+      const draftData = {
+        ...formData,
+        createdBy: userId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
       const docRef = await addDoc(collection(db, DRAFTS_COLLECTION), draftData);
       return { id: docRef.id, ...draftData };
     }
@@ -193,14 +211,46 @@ export const getDraftCount = async (userId) => {
 };
 
 /**
- * Delete a draft
+ * Delete a draft (checks ownership first)
  */
-export const deleteDraft = async (draftId) => {
+export const deleteDraft = async (draftId, userId = null) => {
   try {
     const docRef = doc(db, DRAFTS_COLLECTION, draftId);
+    
+    // If userId provided, verify ownership first
+    if (userId) {
+      try {
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          // Draft already deleted, consider it a success
+          return true;
+        }
+        if (docSnap.data().createdBy !== userId) {
+          // Draft belongs to different user, just return success
+          // (don't try to delete, don't throw error)
+          console.warn('Draft belongs to different user, skipping delete');
+          return true;
+        }
+      } catch (readError) {
+        // Permission denied on read means we can't access this draft
+        // Treat as success (draft doesn't belong to us or doesn't exist)
+        if (readError?.code === 'permission-denied') {
+          console.warn('Cannot read draft, may not exist or belong to user');
+          return true;
+        }
+        throw readError;
+      }
+    }
+    
     await deleteDoc(docRef);
     return true;
   } catch (error) {
+    // If permission denied, the draft might not belong to this user
+    // or already be deleted - treat as success
+    if (error?.code === 'permission-denied') {
+      console.warn('Permission denied deleting draft, may not exist or belong to user');
+      return true;
+    }
     console.error('Error deleting draft:', error);
     throw error;
   }
@@ -231,7 +281,7 @@ export const migrateLocalDraftToFirebase = async (userId) => {
  * Convert draft to a published form (used when publishing)
  * This deletes the draft after the form is created
  */
-export const convertDraftToForm = async (draftId) => {
+export const convertDraftToForm = async (draftId, userId = null) => {
   try {
     // Get the draft data
     const draft = await getDraft(draftId);
@@ -240,7 +290,7 @@ export const convertDraftToForm = async (draftId) => {
     }
 
     // Delete the draft
-    await deleteDraft(draftId);
+    await deleteDraft(draftId, userId);
     
     return draft;
   } catch (error) {

@@ -99,7 +99,7 @@ const Drafts = () => {
 
     setDeletingId(draftId);
     try {
-      await deleteDraft(draftId);
+      await deleteDraft(draftId, user.uid);
       setDrafts(prev => prev.filter(d => d.id !== draftId));
       toast.success('Draft deleted');
     } catch (error) {
