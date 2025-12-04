@@ -8,34 +8,46 @@ import toast from 'react-hot-toast';
 import Button from '../ui/Button';
 import { AlertCircle, Cloud } from 'lucide-react';
 
-// Fallback copy function for iOS and older browsers
-const copyToClipboard = async (text) => {
-  // Try modern clipboard API first
+// Share or copy function with iOS support
+const shareOrCopy = async (text, title = 'Share') => {
+  // On mobile, try Web Share API first (works great on iOS)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: title,
+        text: 'Check out this form',
+        url: text
+      });
+      return { shared: true };
+    } catch (err) {
+      // User cancelled or share failed, fall through to clipboard
+      if (err.name === 'AbortError') {
+        return { cancelled: true };
+      }
+    }
+  }
+  
+  // Try modern clipboard API
   if (navigator.clipboard && navigator.clipboard.writeText) {
     try {
       await navigator.clipboard.writeText(text);
-      return true;
+      return { copied: true };
     } catch (err) {
       // Fall through to fallback
     }
   }
   
-  // Fallback for iOS and older browsers
+  // Fallback for older browsers
   const textArea = document.createElement('textarea');
   textArea.value = text;
   textArea.style.position = 'fixed';
   textArea.style.left = '-9999px';
   textArea.style.top = '0';
+  textArea.style.opacity = '0';
   textArea.setAttribute('readonly', '');
   document.body.appendChild(textArea);
-  
-  // iOS specific handling
-  const range = document.createRange();
-  range.selectNodeContents(textArea);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-  textArea.setSelectionRange(0, text.length);
+  textArea.focus();
+  textArea.select();
   
   let success = false;
   try {
@@ -45,7 +57,7 @@ const copyToClipboard = async (text) => {
   }
   
   document.body.removeChild(textArea);
-  return success;
+  return success ? { copied: true } : { failed: true };
 };
 
 const FormSettings = () => {
@@ -65,10 +77,12 @@ const FormSettings = () => {
       return;
     }
     const link = shareId ? `${window.location.origin}/f/${shareId}` : `${window.location.origin}/forms/${id}/fill`;
-    const success = await copyToClipboard(link);
-    if (success) {
+    const result = await shareOrCopy(link, 'Share Form');
+    if (result.shared) {
+      // User shared via native share sheet
+    } else if (result.copied) {
       toast.success('Form link copied to clipboard');
-    } else {
+    } else if (!result.cancelled) {
       toast.error('Failed to copy link.');
     }
   };
@@ -80,10 +94,10 @@ const FormSettings = () => {
     }
     const src = shareId ? `${window.location.origin}/f/${shareId}` : `${window.location.origin}/forms/${id}/fill`;
     const embed = `<iframe src="${src}" width="100%" height="800" frameborder="0"></iframe>`;
-    const success = await copyToClipboard(embed);
-    if (success) {
-      toast.success('Embed snippet copied to clipboard');
-    } else {
+    const result = await shareOrCopy(embed, 'Embed Code');
+    if (result.shared || result.copied) {
+      toast.success('Embed snippet copied');
+    } else if (!result.cancelled) {
       toast.error('Failed to copy embed snippet');
     }
   };
@@ -115,15 +129,18 @@ const FormSettings = () => {
       }
 
       const link = finalShareId ? `${window.location.origin}/f/${finalShareId}` : `${window.location.origin}/forms/${finalId}/fill`;
-      const success = await copyToClipboard(link);
-      if (success) {
-        toast.success('Share link copied to clipboard');
-      } else {
-        toast.error('Failed to copy share link');
+      const result = await shareOrCopy(link, 'Share Form');
+      if (result.shared) {
+        toast.success('Form published successfully!');
+      } else if (result.copied) {
+        toast.success('Form published! Share link copied to clipboard');
+      } else if (!result.cancelled) {
+        // Still show success for publish even if copy failed
+        toast.success('Form published! Link: ' + link);
       }
     } catch (err) {
       console.error('Failed to publish & share', err);
-      toast.error('Unable to publish and share the form');
+      toast.error('Unable to publish the form');
     }
   };
 
