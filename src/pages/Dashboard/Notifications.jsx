@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Bell, CheckCircle2, Loader2, Send } from 'lucide-react';
+import { AlertTriangle, Bell, CheckCircle2, Loader2, Send, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -22,21 +23,33 @@ const formatDate = (timestamp) => {
   }
 };
 
-const NotificationItem = ({ notification, onMarkRead, isRead }) => {
+const NotificationItem = ({ notification, onMarkRead, isRead, onClick }) => {
   const isHigh = notification.priority === 'high';
-  const iconClass = isHigh ? 'text-red-600' : 'text-gray-600';
+  const isResponse = notification.type === 'response';
+  const iconClass = isHigh ? 'text-red-600' : isResponse ? 'text-green-600' : 'text-gray-600';
   const badgeClass = isHigh
     ? 'bg-red-100 text-red-700'
+    : isResponse
+    ? 'bg-green-100 text-green-700'
     : 'bg-gray-100 text-gray-600';
+
+  const handleClick = () => {
+    if (notification.link && onClick) {
+      onClick(notification.link);
+    }
+  };
 
   return (
     <div
-      className="relative px-1 py-2 md:px-2 border-b border-gray-200"
+      className={`relative px-1 py-2 md:px-2 border-b border-gray-200 ${notification.link ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}`}
+      onClick={handleClick}
     >
       <div className="flex items-start gap-3 md:gap-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600">
+        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isResponse ? 'bg-green-50' : ''}`}>
           {isHigh ? (
             <AlertTriangle className={`h-4 w-4 ${iconClass}`} />
+          ) : isResponse ? (
+            <MessageSquare className={`h-4 w-4 ${iconClass}`} />
           ) : (
             <Bell className={`h-4 w-4 ${iconClass}`} />
           )}
@@ -52,6 +65,11 @@ const NotificationItem = ({ notification, onMarkRead, isRead }) => {
                 High
               </span>
             )}
+            {isResponse && (
+              <span className={`rounded-full px-2 py-[1px] text-[10px] font-semibold ${badgeClass}`}>
+                Response
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-700 leading-snug">
             {notification.message || 'No details provided.'}
@@ -59,12 +77,12 @@ const NotificationItem = ({ notification, onMarkRead, isRead }) => {
           <div className="flex items-center gap-2 text-[11px] text-gray-500">
             <span>{formatDate(notification.createdAt)}</span>
             <span className="h-1 w-1 rounded-full bg-gray-300" />
-            <span>{isHigh ? 'Important' : 'Update'}</span>
+            <span>{isHigh ? 'Important' : isResponse ? 'Form Response' : 'Update'}</span>
           </div>
         </div>
         {!isRead && (
           <button
-            onClick={onMarkRead}
+            onClick={(e) => { e.stopPropagation(); onMarkRead(); }}
             className="mt-1 inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-700 transition-colors hover:border-gray-900"
           >
             <CheckCircle2 className="h-3.5 w-3.5" />
@@ -77,9 +95,11 @@ const NotificationItem = ({ notification, onMarkRead, isRead }) => {
 };
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const { user } = useUserStore();
   const {
     notifications,
+    userNotifications,
     loading,
     error,
     fetchNotifications,
@@ -94,6 +114,19 @@ const Notifications = () => {
     priority: 'normal',
   });
   const [creating, setCreating] = useState(false);
+
+  // Combine and sort all notifications by date
+  const allNotifications = useMemo(() => {
+    const combined = [
+      ...notifications.map(n => ({ ...n, isUserNotification: false })),
+      ...userNotifications.map(n => ({ ...n, isUserNotification: true }))
+    ];
+    return combined.sort((a, b) => {
+      const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(0);
+      const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(0);
+      return dateB - dateA;
+    });
+  }, [notifications, userNotifications]);
 
   const isAdmin = useMemo(() => {
     const adminEmails = parseAdminEmails();
@@ -235,21 +268,25 @@ const Notifications = () => {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
           </div>
-        ) : notifications.length === 0 ? (
+        ) : allNotifications.length === 0 ? (
           <div className="px-4 py-16 text-center">
             <Bell className="mx-auto h-8 w-8 text-gray-400" />
             <h3 className="mt-4 font-display text-2xl text-gray-900">No notifications yet</h3>
             <p className="mt-2 text-sm text-gray-600">
-              You will see admin updates and alerts here once they arrive.
+              You will see updates, alerts, and form responses here.
             </p>
           </div>
         ) : (
-          notifications.map((notification) => (
+          allNotifications.map((notification) => (
             <NotificationItem
-              key={notification.id}
+              key={`${notification.isUserNotification ? 'user' : 'global'}-${notification.id}`}
               notification={notification}
               isRead={notification.read}
-              onMarkRead={() => markAsRead(notification.id, user.uid)}
+              onMarkRead={() => markAsRead(notification.id, user.uid, notification.isUserNotification)}
+              onClick={(link) => {
+                markAsRead(notification.id, user.uid, notification.isUserNotification);
+                navigate(link);
+              }}
             />
           ))
         )}

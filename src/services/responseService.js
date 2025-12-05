@@ -18,6 +18,7 @@ import {
   getLocalResponseById,
   getLocalFormByShareId
 } from './localFormService';
+import { createResponseNotification } from './notificationService';
 
 /**
  * Submit a form response (handles both local and cloud forms)
@@ -38,7 +39,12 @@ export const submitResponse = async (formIdOrShareId, responseData, userId = nul
       });
     }
     
-    // Otherwise, save to Firestore
+    // Get the form to find the owner and title
+    const formRef = doc(db, 'forms', formIdOrShareId);
+    const formSnap = await getDoc(formRef);
+    const formData = formSnap.exists() ? formSnap.data() : null;
+    
+    // Save response to Firestore
     const responseDoc = {
       formId: formIdOrShareId,
       answers: responseData.answers,
@@ -54,6 +60,12 @@ export const submitResponse = async (formIdOrShareId, responseData, userId = nul
       collection(db, 'forms', formIdOrShareId, 'responses'),
       responseDoc
     );
+
+    // Create notification for form owner (fire and forget - don't block response)
+    if (formData?.createdBy) {
+      createResponseNotification(formData.createdBy, formIdOrShareId, formData.title)
+        .catch(err => console.error('Failed to create response notification:', err));
+    }
 
     return { id: docRef.id, ...responseDoc };
   } catch (error) {
