@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@mistralai/mistralai": "^1.10.0",
+    "@tailwindcss/postcss": "^4.1.17",
     "date-fns": "^4.1.0",
     "firebase": "^12.6.0",
     "lucide-react": "^0.560.0",
