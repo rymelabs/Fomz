@@ -1,0 +1,38 @@
+export const PLAN_RULES = {
+  guest: {
+    forms_limit: 3,
+    response_limit: 50,
+    analytics: false,
+    ai_level: "basic",
+    saved_forms: false,
+    branding_removal: false,
+    team_features: false,
+  },
+  free: {
+    forms_limit: 10,
+    response_limit: 100,
+    analytics: false,
+    ai_level: "expanded",
+    saved_forms: true,
+    branding_removal: false,
+    team_features: false,
+  },
+  individual: {
+    forms_limit: Infinity,
+    response_limit: Infinity,
+    analytics: true,
+    ai_level: "advanced",
+    saved_forms: true,
+    branding_removal: true,
+    team_features: false,
+  },
+  team: {
+    forms_limit: Infinity,
+    response_limit: Infinity,
+    analytics: "advanced",
+    ai_level: "advanced",
+    saved_forms: true,
+    branding_removal: true,
+    team_features: true,
+  },
+};
