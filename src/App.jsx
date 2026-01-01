@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { RouterProvider } from 'react-router-dom';
-import router from './router';
-import './styles/global.css';
-import { useAuth } from './hooks/useAuth';
-import ThemeProvider from './components/providers/ThemeProvider';
-import { Toaster } from 'react-hot-toast';
-import { useUserStore } from './store/userStore';
-import { hasLocalFormsToMigrate } from './services/migrationService';
-import MigrationModal from './components/ui/MigrationModal';
+import React, { useState, useEffect } from "react";
+import { RouterProvider } from "react-router-dom";
+import router from "./router";
+import "./styles/global.css";
+import { useAuth } from "./hooks/useAuth";
+import ThemeProvider from "./components/providers/ThemeProvider";
+import { Toaster } from "react-hot-toast";
+import { useUserStore } from "./store/userStore";
+import { hasLocalFormsToMigrate } from "./services/migrationService";
+import MigrationModal from "./components/ui/MigrationModal";
+import { SubscriptionProvider } from "./providers/SubscriptionContext";
 
 const App = () => {
   const { initializing } = useAuth();
@@ -21,7 +22,11 @@ const App = () => {
       setMigrationChecked(true);
       // Check if there are local forms to migrate
       const hasLocalForms = hasLocalFormsToMigrate();
-      console.log('Migration check:', { isAuthenticated, hasLocalForms, user: user?.uid });
+      console.log("Migration check:", {
+        isAuthenticated,
+        hasLocalForms,
+        user: user?.uid,
+      });
       if (hasLocalForms) {
         // Small delay to let auth flow complete
         setTimeout(() => {
@@ -29,7 +34,7 @@ const App = () => {
         }, 1000);
       }
     }
-    
+
     // Reset migration check when user signs out
     if (!isAuthenticated && migrationChecked) {
       setMigrationChecked(false);
@@ -38,7 +43,7 @@ const App = () => {
 
   const handleMigrationComplete = (results) => {
     setShowMigrationModal(false);
-    console.log('Migration complete:', results);
+    console.log("Migration complete:", results);
   };
 
   if (initializing) {
@@ -50,17 +55,19 @@ const App = () => {
   }
 
   return (
-    <ThemeProvider>
-      <RouterProvider router={router} />
-      <Toaster position="top-right" />
-      
-      {/* Global Migration Modal */}
-      <MigrationModal 
-        isOpen={showMigrationModal}
-        onClose={() => setShowMigrationModal(false)}
-        onComplete={handleMigrationComplete}
-      />
-    </ThemeProvider>
+    <SubscriptionProvider>
+      <ThemeProvider>
+        <RouterProvider router={router} />
+        <Toaster position="top-right" />
+
+        {/* Global Migration Modal */}
+        <MigrationModal
+          isOpen={showMigrationModal}
+          onClose={() => setShowMigrationModal(false)}
+          onComplete={handleMigrationComplete}
+        />
+      </ThemeProvider>
+    </SubscriptionProvider>
   );
 };
 
