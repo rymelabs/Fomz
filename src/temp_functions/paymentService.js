@@ -3,13 +3,13 @@ import PaystackPop from "@paystack/inline-js";
 
 const functions = getFunctions();
 
-async function sendPayment(total) {
+async function sendPayment({ total, plan, currency }) {
   try {
     const initializeTransaction = httpsCallable(
       functions,
       "initializeTransaction"
     );
-    const response = await initializeTransaction({ total });
+    const response = await initializeTransaction({ total, plan, currency });
     const { accessCode } = response.data;
 
     return new Promise((resolve, reject) => {
