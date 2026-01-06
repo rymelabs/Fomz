@@ -1,6 +1,7 @@
 import { onRequest } from "firebase-functions/https";
 import corsLib from "cors";
 import admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -12,6 +13,19 @@ export const paystackWebhook = onRequest(async (req, res) => {
 
     if (event.event === "charge.success") {
       const { uid, plan } = event.data.metadata;
+      const reference = event.data.reference;
+
+      const paymentRef = db.doc(`payments/${reference}`);
+      const paymentSnap = await paymentRef.get();
+
+      if (!paymentSnap.exists || paymentSnap.data()?.status === "success")
+        return res.sendStatus(200);
+
+      await paymentRef.update({
+        status: "sucess",
+        paidAt: FieldValue.serverTimestamp(),
+      });
+
       const userRef = db.doc(`users/${uid}`);
       const thirtyDays = 30 * 24 * 60 * 60 * 1000;
       await userRef.update({
@@ -26,6 +40,7 @@ export const paystackWebhook = onRequest(async (req, res) => {
         amount: event.data.amount / 100,
         currency: event.data.currency,
         provider: "paystack",
+        reference,
         status: "success",
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + thirtyDays),
