@@ -1,4 +1,4 @@
-import { HttpsError, onRequest } from "firebase-functions/https";
+import { onRequest } from "firebase-functions/https";
 import corsLib from "cors";
 import admin from "firebase-admin";
 

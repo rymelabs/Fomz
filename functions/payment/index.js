@@ -1,4 +1,4 @@
-import { initializeTransaction } from "./initTransaction";
-import { paystackWebhook } from "./paystackWebhook";
+import { initializeTransaction } from "./initTransaction.js";
+import { paystackWebhook } from "./paystackWebhook.js";
 
 export { initializeTransaction, paystackWebhook };

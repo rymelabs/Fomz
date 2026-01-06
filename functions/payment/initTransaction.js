@@ -1,11 +1,8 @@
 import { HttpsError, onCall } from "firebase-functions/https";
 import axios from "axios";
-import { setGlobalOptions } from "firebase-functions/v2";
 
-import { getPrice } from "./getPrice";
-import { PAYSTACK_BASE, PAYSTACK_SECRET } from "../config/paystackVariables";
-
-setGlobalOptions({ maxInstances: 10 });
+import { getPrice } from "./getPrice.js";
+import { PAYSTACK_BASE, PAYSTACK_SECRET } from "../config/paystackVariables.js";
 
 export const initializeTransaction = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Login Required");

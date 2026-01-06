@@ -1,4 +1,4 @@
-import { PRICING } from "./config/pricing";
+import { PRICING } from "../config/pricing.js";
 
 export function getPrice(plan, currency) {
   const currencyPricing = PRICING[currency];

@@ -1,9 +1,6 @@
-import { setGlobalOptions } from "firebase-functions";
+import { setGlobalOptions } from "firebase-functions/v2";
 
-import * as payments from "./payment";
-
-const { setGlobalOptions } = require("firebase-functions");
-const logger = require("firebase-functions/logger");
+import * as payments from "./payment/index.js";
 
 setGlobalOptions({ maxInstances: 10 });
 
