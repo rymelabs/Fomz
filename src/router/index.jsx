@@ -93,7 +93,7 @@ const router = createBrowserRouter([
     element: <Intro />,
   },
   {
-    path: "/billing/pricing",
+    path: "/pricing",
     element: <Pricing />,
   },
 ]);

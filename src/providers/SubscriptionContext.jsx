@@ -34,7 +34,7 @@ export function SubscriptionProvider({ children }) {
   }, []);
 
   const tier = userData?.tier ?? Tier.GUEST;
-  const effectiveTier = userDoc?.teamId ? Tier.TEAM : tier;
+  const effectiveTier = userData?.teamId ? Tier.TEAM : tier;
   const capabilities = PLAN_RULES[effectiveTier];
   const usage = userData?.usage ?? { forms: 0, responses: 0 };
 

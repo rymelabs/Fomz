@@ -1,5 +1,7 @@
 const Pricing = () => {
-  return <p>This is a paid feature</p>;
+  return (
+    <div>Please upgrade your subscription tier to access this feature</div>
+  );
 };
 
 export default Pricing;
