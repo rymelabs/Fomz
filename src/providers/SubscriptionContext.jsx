@@ -45,12 +45,10 @@ export function SubscriptionProvider({ children }) {
     return Boolean(capabilities?.[feature]);
   };
 
-  const remaining = (type) => {
-    const limitKey = `${type}Limit`;
-    const limit = capabilities?.[limitKey];
-
-    if (limit === Infinity) return Infinity;
-    return Math.max(limit - (usage[type] ?? 0), 0);
+  const remaining = (type, amountUsed) => {
+    const limit = capabilities?.[`${type}_limit`];
+    if (limit === Infinity) return true;
+    return (usage[type] ?? 0) + amountUsed < limit;
   };
 
   const value = {

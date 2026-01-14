@@ -9,21 +9,26 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  Timestamp
-} from 'firebase/firestore';
-import { db } from './firebase';
+  Timestamp,
+} from "firebase/firestore";
+import { db } from "./firebase";
 import {
   saveLocalResponse,
   getLocalResponses,
   getLocalResponseById,
-  getLocalFormByShareId
-} from './localFormService';
-import { createResponseNotification } from './notificationService';
+  getLocalFormByShareId,
+} from "./localFormService";
+import { createResponseNotification } from "./notificationService";
+import { PLAN_RULES } from "../shared/planRules";
 
 /**
  * Submit a form response (handles both local and cloud forms)
  */
-export const submitResponse = async (formIdOrShareId, responseData, userId = null) => {
+export const submitResponse = async (
+  formIdOrShareId,
+  responseData,
+  userId = null
+) => {
   try {
     // Check if it's a local form by shareId first
     const localForm = getLocalFormByShareId(formIdOrShareId);
@@ -34,16 +39,32 @@ export const submitResponse = async (formIdOrShareId, responseData, userId = nul
         submitterId: userId,
         metadata: {
           userAgent: navigator.userAgent,
-          ...responseData.metadata
-        }
+          ...responseData.metadata,
+        },
       });
     }
-    
+
     // Get the form to find the owner and title
-    const formRef = doc(db, 'forms', formIdOrShareId);
+    const formRef = doc(db, "forms", formIdOrShareId);
+
+    const formResponses = collection(formRef, "responses");
     const formSnap = await getDoc(formRef);
     const formData = formSnap.exists() ? formSnap.data() : null;
-    
+
+    const formOwnerId = formData.createdBy;
+
+    const ownerRef = doc(db, "users", formOwnerId);
+    const userDoc = await getDoc(ownerRef);
+
+    const capabilities = PLAN_RULES[userDoc.tier];
+    const limit = capabilities?.["response_limit"];
+
+    const querySnapshot = await getCountFromServer(formResponses);
+    const numberOfResponse = querySnapshot.data().count;
+
+    if (numberOfResponse < limit)
+      throw new Error("Response limit has been reached");
+
     // Save response to Firestore
     const responseDoc = {
       formId: formIdOrShareId,
@@ -52,24 +73,32 @@ export const submitResponse = async (formIdOrShareId, responseData, userId = nul
       submitterId: userId,
       metadata: {
         userAgent: navigator.userAgent,
-        ...responseData.metadata
-      }
+        ...responseData.metadata,
+      },
     };
 
     const docRef = await addDoc(
-      collection(db, 'forms', formIdOrShareId, 'responses'),
+      collection(db, "forms", formIdOrShareId, "responses"),
       responseDoc
     );
 
     // Create notification for form owner (fire and forget - don't block response)
     if (formData?.createdBy) {
-      createResponseNotification(formData.createdBy, formIdOrShareId, formData.title)
-        .catch(err => console.error('Failed to create response notification:', err));
+      createResponseNotification(
+        formData.createdBy,
+        formIdOrShareId,
+        formData.title
+      ).catch((err) =>
+        console.error("Failed to create response notification:", err)
+      );
     }
+
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, { "usage.response": increment(1) });
 
     return { id: docRef.id, ...responseDoc };
   } catch (error) {
-    console.error('Error submitting response:', error);
+    console.error("Error submitting response:", error);
     throw error;
   }
 };
@@ -84,11 +113,11 @@ export const getFormResponses = async (formIdOrShareId) => {
     if (localForm) {
       return getLocalResponses(localForm.shareId);
     }
-    
+
     // Otherwise, query Firestore
     const q = query(
-      collection(db, 'forms', formIdOrShareId, 'responses'),
-      orderBy('submittedAt', 'desc')
+      collection(db, "forms", formIdOrShareId, "responses"),
+      orderBy("submittedAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -99,15 +128,16 @@ export const getFormResponses = async (formIdOrShareId) => {
       responses.push({
         id: doc.id,
         ...data,
-        submittedAt: data.submittedAt instanceof Timestamp 
-          ? data.submittedAt.toDate() 
-          : data.submittedAt
+        submittedAt:
+          data.submittedAt instanceof Timestamp
+            ? data.submittedAt.toDate()
+            : data.submittedAt,
       });
     });
 
     return responses;
   } catch (error) {
-    console.error('Error getting form responses:', error);
+    console.error("Error getting form responses:", error);
     throw error;
   }
 };
@@ -117,7 +147,7 @@ export const getFormResponses = async (formIdOrShareId) => {
  */
 export const getResponse = async (formId, responseId) => {
   try {
-    const docRef = doc(db, 'forms', formId, 'responses', responseId);
+    const docRef = doc(db, "forms", formId, "responses", responseId);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -125,15 +155,16 @@ export const getResponse = async (formId, responseId) => {
       return {
         id: docSnap.id,
         ...data,
-        submittedAt: data.submittedAt instanceof Timestamp 
-          ? data.submittedAt.toDate() 
-          : data.submittedAt
+        submittedAt:
+          data.submittedAt instanceof Timestamp
+            ? data.submittedAt.toDate()
+            : data.submittedAt,
       };
     } else {
-      throw new Error('Response not found');
+      throw new Error("Response not found");
     }
   } catch (error) {
-    console.error('Error getting response:', error);
+    console.error("Error getting response:", error);
     throw error;
   }
 };
@@ -143,11 +174,11 @@ export const getResponse = async (formId, responseId) => {
  */
 export const getResponseCount = async (formId) => {
   try {
-    const coll = collection(db, 'forms', formId, 'responses');
+    const coll = collection(db, "forms", formId, "responses");
     const snapshot = await getCountFromServer(coll);
     return snapshot.data().count;
   } catch (error) {
-    console.error('Error getting response count:', error);
+    console.error("Error getting response count:", error);
     return 0;
   }
 };
@@ -158,19 +189,19 @@ export const getResponseCount = async (formId) => {
 export const analyzeResponses = (responses, questions) => {
   const analysis = {
     totalResponses: responses.length,
-    questionAnalysis: {}
+    questionAnalysis: {},
   };
 
-  questions.forEach(question => {
-    const questionResponses = responses.map(r => 
-      r.answers.find(a => a.questionId === question.id)
-    ).filter(Boolean);
+  questions.forEach((question) => {
+    const questionResponses = responses
+      .map((r) => r.answers.find((a) => a.questionId === question.id))
+      .filter(Boolean);
 
     analysis.questionAnalysis[question.id] = {
       question: question.label,
       type: question.type,
       totalAnswers: questionResponses.length,
-      data: analyzeQuestionType(question, questionResponses)
+      data: analyzeQuestionType(question, questionResponses),
     };
   });
 
@@ -182,19 +213,19 @@ export const analyzeResponses = (responses, questions) => {
  */
 const analyzeQuestionType = (question, responses) => {
   switch (question.type) {
-    case 'multiple-choice':
-    case 'dropdown':
+    case "multiple-choice":
+    case "dropdown":
       return analyzeMultipleChoice(question.options, responses);
-    
-    case 'checkbox':
+
+    case "checkbox":
       return analyzeCheckbox(question.options, responses);
-    
-    case 'rating':
+
+    case "rating":
       return analyzeRating(responses);
-    
-    case 'number':
+
+    case "number":
       return analyzeNumber(responses);
-    
+
     default:
       return analyzeText(responses);
   }
@@ -202,78 +233,82 @@ const analyzeQuestionType = (question, responses) => {
 
 const analyzeMultipleChoice = (options, responses) => {
   const counts = {};
-  options.forEach(opt => counts[opt] = 0);
-  
-  responses.forEach(r => {
+  options.forEach((opt) => (counts[opt] = 0));
+
+  responses.forEach((r) => {
     if (r.value && counts.hasOwnProperty(r.value)) {
       counts[r.value]++;
     }
   });
-  
+
   return {
-    type: 'distribution',
+    type: "distribution",
     counts,
     percentage: Object.entries(counts).reduce((acc, [key, value]) => {
-      acc[key] = responses.length ? ((value / responses.length) * 100).toFixed(1) : 0;
+      acc[key] = responses.length
+        ? ((value / responses.length) * 100).toFixed(1)
+        : 0;
       return acc;
-    }, {})
+    }, {}),
   };
 };
 
 const analyzeCheckbox = (options, responses) => {
   const counts = {};
-  options.forEach(opt => counts[opt] = 0);
-  
-  responses.forEach(r => {
+  options.forEach((opt) => (counts[opt] = 0));
+
+  responses.forEach((r) => {
     if (Array.isArray(r.value)) {
-      r.value.forEach(val => {
+      r.value.forEach((val) => {
         if (counts.hasOwnProperty(val)) {
           counts[val]++;
         }
       });
     }
   });
-  
+
   return {
-    type: 'distribution',
-    counts
+    type: "distribution",
+    counts,
   };
 };
 
 const analyzeRating = (responses) => {
-  const ratings = responses.map(r => r.value).filter(Boolean);
+  const ratings = responses.map((r) => r.value).filter(Boolean);
   const sum = ratings.reduce((a, b) => a + b, 0);
   const avg = ratings.length ? (sum / ratings.length).toFixed(2) : 0;
-  
+
   return {
-    type: 'rating',
+    type: "rating",
     average: avg,
     distribution: ratings.reduce((acc, rating) => {
       acc[rating] = (acc[rating] || 0) + 1;
       return acc;
-    }, {})
+    }, {}),
   };
 };
 
 const analyzeNumber = (responses) => {
-  const numbers = responses.map(r => parseFloat(r.value)).filter(n => !isNaN(n));
-  
+  const numbers = responses
+    .map((r) => parseFloat(r.value))
+    .filter((n) => !isNaN(n));
+
   if (numbers.length === 0) {
-    return { type: 'number', min: 0, max: 0, average: 0 };
+    return { type: "number", min: 0, max: 0, average: 0 };
   }
-  
+
   return {
-    type: 'number',
+    type: "number",
     min: Math.min(...numbers),
     max: Math.max(...numbers),
-    average: (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(2)
+    average: (numbers.reduce((a, b) => a + b, 0) / numbers.length).toFixed(2),
   };
 };
 
 const analyzeText = (responses) => {
   return {
-    type: 'text',
-    responses: responses.map(r => r.value).filter(Boolean)
+    type: "text",
+    responses: responses.map((r) => r.value).filter(Boolean),
   };
 };
 
@@ -281,22 +316,26 @@ const analyzeText = (responses) => {
  * Export responses to CSV
  */
 export const exportToCSV = (responses, questions) => {
-  const headers = ['Timestamp', ...questions.map(q => q.label)];
-  const rows = responses.map(response => {
+  const headers = ["Timestamp", ...questions.map((q) => q.label)];
+  const rows = responses.map((response) => {
     const row = [new Date(response.submittedAt).toLocaleString()];
-    
-    questions.forEach(question => {
-      const answer = response.answers.find(a => a.questionId === question.id);
-      const value = answer ? (Array.isArray(answer.value) ? answer.value.join(', ') : answer.value) : '';
+
+    questions.forEach((question) => {
+      const answer = response.answers.find((a) => a.questionId === question.id);
+      const value = answer
+        ? Array.isArray(answer.value)
+          ? answer.value.join(", ")
+          : answer.value
+        : "";
       row.push(value);
     });
-    
+
     return row;
   });
-  
+
   const csv = [headers, ...rows]
-    .map(row => row.map(cell => `"${cell}"`).join(','))
-    .join('\n');
-  
+    .map((row) => row.map((cell) => `"${cell}"`).join(","))
+    .join("\n");
+
   return csv;
 };
