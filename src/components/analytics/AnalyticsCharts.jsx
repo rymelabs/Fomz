@@ -1,8 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-const ChartCard = ({ title, children, className = '' }) => (
+const ChartCard = ({ title, children, className = '', rightElement }) => (
   <div className={`rounded-3xl border border-gray-200/80 bg-white/80 p-5 backdrop-blur ${className}`}>
-    <h3 className="font-display text-base text-gray-900 mb-4">{title}</h3>
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="font-display text-base text-gray-900">{title}</h3>
+      {rightElement}
+    </div>
     {children}
   </div>
 );
@@ -234,6 +238,357 @@ export const ResponsePatterns = ({ responses }) => {
         <span>12 PM</span>
         <span>6 PM</span>
         <span>11 PM</span>
+      </div>
+    </ChartCard>
+  );
+};
+
+// Completion Rate Component
+export const CompletionRate = ({ responses, totalStarted = null }) => {
+  const stats = useMemo(() => {
+    const completed = responses.length;
+    // If totalStarted is not provided, estimate based on completed (assuming 70-90% completion rate as placeholder)
+    const started = totalStarted ?? Math.ceil(completed * 1.2);
+    const rate = started > 0 ? Math.round((completed / started) * 100) : 0;
+    
+    // Calculate trend (compare last 7 days to previous 7 days)
+    const now = new Date();
+    const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
+    
+    const lastWeekResponses = responses.filter(r => new Date(r.submittedAt) >= oneWeekAgo);
+    const previousWeekResponses = responses.filter(r => {
+      const date = new Date(r.submittedAt);
+      return date >= twoWeeksAgo && date < oneWeekAgo;
+    });
+    
+    let trend = 'stable';
+    let trendPercentage = 0;
+    
+    if (previousWeekResponses.length > 0) {
+      const change = lastWeekResponses.length - previousWeekResponses.length;
+      trendPercentage = Math.round((change / previousWeekResponses.length) * 100);
+      if (trendPercentage > 10) trend = 'up';
+      else if (trendPercentage < -10) trend = 'down';
+    }
+    
+    return { completed, started, rate, trend, trendPercentage };
+  }, [responses, totalStarted]);
+
+  return (
+    <ChartCard title="Completion Rate">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-bold text-gray-900">{stats.rate}%</span>
+            <div className={`flex items-center gap-1 text-sm mb-1 ${
+              stats.trend === 'up' ? 'text-green-600' :
+              stats.trend === 'down' ? 'text-red-500' : 'text-gray-400'
+            }`}>
+              {stats.trend === 'up' && <TrendingUp className="h-4 w-4" />}
+              {stats.trend === 'down' && <TrendingDown className="h-4 w-4" />}
+              {stats.trend === 'stable' && <Minus className="h-4 w-4" />}
+              <span>{stats.trendPercentage > 0 ? '+' : ''}{stats.trendPercentage}%</span>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+            {stats.completed} completed of ~{stats.started} started
+          </p>
+        </div>
+        
+        {/* Circular Progress */}
+        <div className="relative w-20 h-20">
+          <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+            <path
+              className="text-gray-100"
+              strokeDasharray="100, 100"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+            />
+            <path
+              className="text-primary-500"
+              strokeDasharray={`${stats.rate}, 100`}
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      </div>
+    </ChartCard>
+  );
+};
+
+// Date Range Picker Component
+export const DateRangePicker = ({ startDate, endDate, onDateChange, presets = true }) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const [tempStart, setTempStart] = useState(startDate);
+  const [tempEnd, setTempEnd] = useState(endDate);
+
+  const presetRanges = [
+    { label: 'Last 7 days', days: 7 },
+    { label: 'Last 30 days', days: 30 },
+    { label: 'Last 90 days', days: 90 },
+    { label: 'This year', days: 365 },
+    { label: 'All time', days: null }
+  ];
+
+  const applyPreset = (days) => {
+    const end = new Date();
+    const start = days ? new Date(end - days * 24 * 60 * 60 * 1000) : null;
+    onDateChange(start, end);
+    setShowPicker(false);
+  };
+
+  const formatDateDisplay = () => {
+    if (!startDate && !endDate) return 'All time';
+    if (!startDate) return `Until ${endDate.toLocaleDateString()}`;
+    if (!endDate) return `From ${startDate.toLocaleDateString()}`;
+    
+    const sameYear = startDate.getFullYear() === endDate.getFullYear();
+    const startOpts = { month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) };
+    const endOpts = { month: 'short', day: 'numeric', year: 'numeric' };
+    
+    return `${startDate.toLocaleDateString(undefined, startOpts)} - ${endDate.toLocaleDateString(undefined, endOpts)}`;
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowPicker(!showPicker)}
+        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        <Calendar className="h-4 w-4 text-gray-400" />
+        <span className="text-gray-700">{formatDateDisplay()}</span>
+        <ChevronDown className="h-4 w-4 text-gray-400" />
+      </button>
+
+      {showPicker && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setShowPicker(false)} 
+          />
+          <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-xl shadow-xl border border-gray-200 p-4 min-w-[280px]">
+            {presets && (
+              <div className="space-y-1 mb-4 pb-4 border-b border-gray-100">
+                {presetRanges.map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => applyPreset(preset.days)}
+                    className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Start Date</label>
+                <input
+                  type="date"
+                  value={tempStart ? tempStart.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setTempStart(e.target.value ? new Date(e.target.value) : null)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">End Date</label>
+                <input
+                  type="date"
+                  value={tempEnd ? tempEnd.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setTempEnd(e.target.value ? new Date(e.target.value) : null)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  onDateChange(tempStart, tempEnd);
+                  setShowPicker(false);
+                }}
+                className="w-full py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Apply Range
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Question-Level Stats Component
+export const QuestionStats = ({ responses, questions }) => {
+  const [expandedQuestion, setExpandedQuestion] = useState(null);
+
+  const questionStats = useMemo(() => {
+    if (!questions || !responses.length) return [];
+
+    return questions.map((question, index) => {
+      // Get all answers for this question
+      const answers = responses.map(r => {
+        if (Array.isArray(r.answers)) {
+          const answer = r.answers.find(a => a.questionId === question.id);
+          return answer?.value;
+        }
+        return r.answers?.[question.id];
+      }).filter(a => a !== undefined && a !== null && a !== '');
+
+      const totalResponses = responses.length;
+      const answered = answers.length;
+      const skipped = totalResponses - answered;
+      const responseRate = Math.round((answered / totalResponses) * 100);
+
+      // Calculate distribution based on question type
+      let distribution = null;
+      
+      if (['multiple-choice', 'dropdown', 'checkbox'].includes(question.type)) {
+        // Count occurrences of each option
+        const counts = {};
+        answers.forEach(answer => {
+          const values = Array.isArray(answer) ? answer : [answer];
+          values.forEach(v => {
+            counts[v] = (counts[v] || 0) + 1;
+          });
+        });
+        
+        distribution = (question.options || []).map(opt => ({
+          option: opt,
+          count: counts[opt] || 0,
+          percentage: answered > 0 ? Math.round((counts[opt] || 0) / answered * 100) : 0
+        }));
+      } else if (question.type === 'rating') {
+        // Rating distribution
+        const maxRating = question.maxRating || 5;
+        const counts = {};
+        answers.forEach(answer => {
+          const rating = parseInt(answer);
+          if (!isNaN(rating)) {
+            counts[rating] = (counts[rating] || 0) + 1;
+          }
+        });
+        
+        distribution = Array.from({ length: maxRating }, (_, i) => i + 1).map(rating => ({
+          option: `${rating} star${rating > 1 ? 's' : ''}`,
+          count: counts[rating] || 0,
+          percentage: answered > 0 ? Math.round((counts[rating] || 0) / answered * 100) : 0
+        }));
+        
+        // Calculate average rating
+        const sum = answers.reduce((acc, a) => acc + parseInt(a), 0);
+        distribution.average = answered > 0 ? (sum / answered).toFixed(1) : null;
+      } else if (question.type === 'slider') {
+        // Slider average and range
+        const numericAnswers = answers.map(a => parseFloat(a)).filter(n => !isNaN(n));
+        if (numericAnswers.length) {
+          const sum = numericAnswers.reduce((acc, n) => acc + n, 0);
+          const avg = sum / numericAnswers.length;
+          const min = Math.min(...numericAnswers);
+          const max = Math.max(...numericAnswers);
+          distribution = { average: avg.toFixed(1), min, max };
+        }
+      }
+
+      return {
+        id: question.id,
+        title: question.title,
+        type: question.type,
+        index: index + 1,
+        answered,
+        skipped,
+        responseRate,
+        distribution
+      };
+    });
+  }, [responses, questions]);
+
+  if (!questionStats.length) {
+    return (
+      <ChartCard title="Question Analytics">
+        <p className="text-gray-500 text-center py-8">No question data available</p>
+      </ChartCard>
+    );
+  }
+
+  return (
+    <ChartCard title="Question Analytics" className="col-span-full">
+      <div className="space-y-3">
+        {questionStats.map((stat) => (
+          <div
+            key={stat.id}
+            className="border border-gray-100 rounded-xl overflow-hidden"
+          >
+            <button
+              onClick={() => setExpandedQuestion(expandedQuestion === stat.id ? null : stat.id)}
+              className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-xs font-medium text-gray-400 w-6">Q{stat.index}</span>
+                <span className="text-sm text-gray-900 truncate">{stat.title}</span>
+                <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full capitalize whitespace-nowrap">
+                  {stat.type.replace('-', ' ')}
+                </span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{stat.responseRate}%</p>
+                  <p className="text-xs text-gray-400">{stat.answered} answers</p>
+                </div>
+                <ChevronDown 
+                  className={`h-4 w-4 text-gray-400 transition-transform ${
+                    expandedQuestion === stat.id ? 'rotate-180' : ''
+                  }`} 
+                />
+              </div>
+            </button>
+
+            {expandedQuestion === stat.id && stat.distribution && (
+              <div className="p-3 pt-0 border-t border-gray-100 bg-gray-50/50">
+                {Array.isArray(stat.distribution) ? (
+                  <div className="space-y-2 mt-3">
+                    {stat.distribution.average && (
+                      <p className="text-sm text-gray-600 mb-3">
+                        Average rating: <span className="font-semibold text-primary-600">{stat.distribution.average}</span>
+                      </p>
+                    )}
+                    {stat.distribution.map((item, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="text-xs text-gray-600 w-24 truncate">{item.option}</span>
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary-500 rounded-full transition-all duration-500"
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-500 w-16 text-right">
+                          {item.count} ({item.percentage}%)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-3 text-sm text-gray-600">
+                    <p>Average: <span className="font-semibold text-primary-600">{stat.distribution.average}</span></p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Range: {stat.distribution.min} - {stat.distribution.max}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </ChartCard>
   );

@@ -6,10 +6,12 @@ const Modal = ({
   isOpen, 
   onClose, 
   title, 
+  description,
   children, 
   footer,
   size = 'md',
-  showCloseButton = true 
+  showCloseButton = true,
+  noPadding = false
 }) => {
   if (!isOpen) return null;
   
@@ -33,20 +35,25 @@ const Modal = ({
         {/* Modal */}
         <div className={`relative bg-white rounded-xl shadow-2xl ${sizes[size]} w-full animate-slide-up`}>
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
-            <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            )}
-          </div>
+          {(title || showCloseButton) && (
+            <div className="flex items-start justify-between p-6 border-b">
+              <div>
+                {title && <h3 className="text-xl font-semibold text-gray-900">{title}</h3>}
+                {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+              </div>
+              {showCloseButton && (
+                <button
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              )}
+            </div>
+          )}
           
           {/* Content */}
-          <div className="p-6">
+          <div className={noPadding ? '' : 'p-6'}>
             {children}
           </div>
           

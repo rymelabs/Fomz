@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Sparkles, X, Loader2, Feather, Mic, MicOff, AlertCircle, Crown } from 'lucide-react';
+import { Sparkles, X, Loader2, Feather, Mic, MicOff, AlertCircle, Crown, Pencil } from 'lucide-react';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useUserStore } from '../../store/userStore';
 import { getUsageStats } from '../../services/aiUsageLimitService';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
+import toast from 'react-hot-toast';
 
-const AIGeneratorModal = ({ isOpen, onClose }) => {
+const AIGeneratorModal = ({ isOpen, onClose, mode = 'create' }) => {
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState(null);
   const [isListening, setIsListening] = useState(false);
@@ -14,9 +15,10 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
   const [interimTranscript, setInterimTranscript] = useState('');
   const [usageStats, setUsageStats] = useState(null);
   const recognitionRef = useRef(null);
-  const { generateForm, isGenerating, checkAILimit } = useFormBuilderStore();
-  const { user, isAuthenticated } = useUserStore();
+  const { generateForm, editForm, isGenerating, checkAILimit, questions, sections } = useFormBuilderStore();
+  const { isAuthenticated } = useUserStore();
   const navigate = useNavigate();
+  const isEditMode = mode === 'edit';
 
   useEffect(() => {
     if (!isOpen) {
@@ -29,7 +31,7 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
       const stats = getUsageStats(isAuthenticated);
       setUsageStats(stats);
     }
-  }, [isOpen, isAuthenticated]);
+  }, [isOpen, isAuthenticated, mode]);
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -122,19 +124,27 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
     }
 
     try {
-      const result = await generateForm(prompt, isAuthenticated);
+      const result = isEditMode
+        ? await editForm(prompt, isAuthenticated)
+        : await generateForm(prompt, isAuthenticated);
       if (result.success) {
         // Update usage stats
         setUsageStats(getUsageStats(isAuthenticated));
-        navigate('/builder', { state: { fromAI: true } });
+        if (isEditMode) {
+          toast.success('Fomzy updated your form. You can undo the edit if needed.');
+        } else {
+          navigate('/builder', { state: { fromAI: true } });
+        }
         onClose();
       } else if (result.error === 'LIMIT_REACHED') {
         setError('Daily limit reached. Sign in for unlimited AI generations!');
       } else {
-        setError('Unable to generate form right now. Please try again.');
+        setError(isEditMode
+          ? (result.message || 'Unable to edit this form right now. Please try again.')
+          : 'Unable to generate form right now. Please try again.');
       }
     } catch (err) {
-      console.error('AI generation failed', err);
+      console.error(isEditMode ? 'AI form edit failed' : 'AI generation failed', err);
       setError('Something went wrong. Please try again.');
     }
   };
@@ -167,10 +177,12 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
-                  <Feather className="h-5 w-5" />
+                  {isEditMode ? <Pencil className="h-5 w-5" /> : <Feather className="h-5 w-5" />}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-display font-semibold text-gray-900">Create with Fomzy</h2>
+                  <h2 className="text-2xl font-display font-semibold text-gray-900">
+                    {isEditMode ? 'Edit with Fomzy' : 'Create with Fomzy'}
+                  </h2>
                   <p className="text-xs uppercase text-gray-500 font-semibold">AI quill companion</p>
                 </div>
               </div>
@@ -186,15 +198,17 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
 
             <div className="rounded-2xl border border-gray-200 bg-white/10 px-4 py-3">
               <p className="text-sm text-gray-700">
-                Describe the form you want. Fomzy will suggest sections, questions, and a fitting theme.
+                {isEditMode
+                  ? `Tell Fomzy what to change. The current ${sections.length} section${sections.length === 1 ? '' : 's'} and ${questions.length} question${questions.length === 1 ? '' : 's'} will be used as context.`
+                  : 'Describe the form you want. Fomzy will suggest sections, questions, and a fitting theme.'}
               </p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-blue-700 border border-blue-100">
                   <Sparkles className="h-3 w-3" />
-                  Sections & questions
+                  {isEditMode ? 'Keeps unaffected content' : 'Sections & questions'}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-blue-700 border border-blue-100">
-                  Theme match
+                  {isEditMode ? 'Supports branching logic' : 'Theme match'}
                 </span>
               </div>
               
@@ -235,7 +249,9 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="e.g., A customer satisfaction survey for a coffee shop with ratings, a comment box, and contact details."
+                placeholder={isEditMode
+                  ? 'e.g., Add a Yes/No attendance question. If Yes, show meal preference and accessibility questions. Leave everything else unchanged.'
+                  : 'e.g., A customer satisfaction survey for a coffee shop with ratings, a comment box, and contact details.'}
                 className="w-full h-32 md:h-40 pr-12 p-4 rounded-2xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-all resize-none text-sm outline-none"
                 disabled={isGenerating}
               />
@@ -276,7 +292,9 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               {isGenerating ? (
                 <div className="flex items-center gap-2 text-sm text-blue-700">
                   <span className="inline-flex h-3 w-3 animate-ping rounded-full bg-blue-500" />
-                  <span className="font-medium">Fomzy is drafting your form...</span>
+                  <span className="font-medium">
+                    {isEditMode ? 'Fomzy is editing your form...' : 'Fomzy is drafting your form...'}
+                  </span>
                 </div>
               ) : (
                 <div className="text-xs text-gray-500">
@@ -299,12 +317,12 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Generating...
+                      {isEditMode ? 'Editing...' : 'Generating...'}
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Generate
+                      {isEditMode ? 'Apply edit' : 'Generate'}
                     </>
                   )}
                 </Button>
@@ -318,21 +336,25 @@ const AIGeneratorModal = ({ isOpen, onClose }) => {
               <ul className="mt-2 space-y-1 text-xs">
                 <li className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                  Draft sections & sensible question types
+                  {isEditMode ? 'Add, remove, or reword questions' : 'Draft sections & sensible question types'}
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                  Propose themes that match the brief
+                  {isEditMode ? 'Reorganize sections and question order' : 'Propose themes that match the brief'}
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                  Ensure required fields where appropriate
+                  {isEditMode ? 'Create and update conditional branches' : 'Ensure required fields where appropriate'}
                 </li>
               </ul>
             </div>
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-blue-800">
               <p className="text-xs font-semibold">Suggestions</p>
-              <p className="text-xs mt-2">Include audience, tone, required fields, and any branching logic you want.</p>
+              <p className="text-xs mt-2">
+                {isEditMode
+                  ? 'Examples: “Make email optional,” “shorten the wording,” or “show follow-ups only when they answer Yes.”'
+                  : 'Include audience, tone, required fields, and any branching logic you want.'}
+              </p>
             </div>
           </div>
         </div>

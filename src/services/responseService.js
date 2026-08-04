@@ -4,6 +4,8 @@ import {
   addDoc,
   getDoc,
   getDocs,
+  updateDoc,
+  deleteDoc,
   getCountFromServer,
   query,
   where,
@@ -16,7 +18,8 @@ import {
   saveLocalResponse,
   getLocalResponses,
   getLocalResponseById,
-  getLocalFormByShareId
+  getLocalFormByShareId,
+  updateLocalResponse
 } from './localFormService';
 import { createResponseNotification } from './notificationService';
 
@@ -70,6 +73,78 @@ export const submitResponse = async (formIdOrShareId, responseData, userId = nul
     return { id: docRef.id, ...responseDoc };
   } catch (error) {
     console.error('Error submitting response:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a response (for form creators to edit/normalize responses)
+ */
+export const updateResponse = async (formId, responseId, updates) => {
+  try {
+    // Check if it's a local form
+    if (formId.startsWith('local_')) {
+      return updateLocalResponse(formId, responseId, updates);
+    }
+    
+    // Update in Firestore
+    const responseRef = doc(db, 'forms', formId, 'responses', responseId);
+    await updateDoc(responseRef, {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
+    
+    return { id: responseId, ...updates };
+  } catch (error) {
+    console.error('Error updating response:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a single response
+ */
+export const deleteResponse = async (formId, responseId) => {
+  try {
+    // Check if it's a local form
+    if (formId.startsWith('local_')) {
+      // Get local responses and filter out the deleted one
+      const localResponses = getLocalResponses(formId);
+      const updatedResponses = localResponses.filter(r => r.id !== responseId);
+      localStorage.setItem(`fomz_responses_${formId}`, JSON.stringify(updatedResponses));
+      return { success: true };
+    }
+    
+    // Delete from Firestore
+    const responseRef = doc(db, 'forms', formId, 'responses', responseId);
+    await deleteDoc(responseRef);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting response:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete multiple responses at once
+ */
+export const deleteMultipleResponses = async (formId, responseIds) => {
+  try {
+    const results = await Promise.allSettled(
+      responseIds.map(id => deleteResponse(formId, id))
+    );
+    
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+    
+    return { 
+      success: failed === 0,
+      deleted: successful,
+      failed: failed
+    };
+  } catch (error) {
+    console.error('Error deleting multiple responses:', error);
     throw error;
   }
 };
@@ -153,6 +228,69 @@ export const getResponseCount = async (formId) => {
 };
 
 /**
+ * Smart answer matching with type inference fallback
+ * Priority: 1) exact questionId, 2) type-based matching, 3) positional fallback
+ */
+const findAnswerForQuestion = (response, question, questionIndex, questions) => {
+  if (!response?.answers || !Array.isArray(response.answers)) return null;
+  
+  // First try exact questionId match
+  const exactMatch = response.answers.find(a => a.questionId === question.id);
+  if (exactMatch) return exactMatch;
+  
+  // Build set of indices already matched by ID
+  const usedIndices = new Set();
+  questions.forEach(q => {
+    const idx = response.answers.findIndex(a => a.questionId === q.id);
+    if (idx !== -1) usedIndices.add(idx);
+  });
+  
+  // Get unmatched answers
+  const unmatchedAnswers = response.answers
+    .map((a, idx) => ({ ...a, originalIndex: idx }))
+    .filter((_, idx) => !usedIndices.has(idx));
+  
+  if (unmatchedAnswers.length === 0) return null;
+  
+  // Type-based matching using value inference
+  const sameTypeAnswers = unmatchedAnswers.filter(a => {
+    if (question.type === 'email') {
+      return typeof a.value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.value);
+    }
+    if (question.type === 'number' || question.type === 'rating') {
+      return typeof a.value === 'number' || !isNaN(Number(a.value));
+    }
+    if (question.type === 'checkbox') {
+      return Array.isArray(a.value);
+    }
+    return true;
+  });
+  
+  if (sameTypeAnswers.length === 1) {
+    return sameTypeAnswers[0];
+  }
+  
+  // For specific types with multiple matches, use index among same-type questions
+  if (sameTypeAnswers.length > 1) {
+    const sameTypeQuestionIndices = questions
+      .map((q, i) => q.type === question.type ? i : -1)
+      .filter(i => i !== -1);
+    const thisTypeIndex = sameTypeQuestionIndices.indexOf(questionIndex);
+    if (thisTypeIndex !== -1 && sameTypeAnswers[thisTypeIndex]) {
+      return sameTypeAnswers[thisTypeIndex];
+    }
+  }
+  
+  // Last resort: positional fallback
+  const positionInUnmatched = questionIndex - usedIndices.size;
+  if (positionInUnmatched >= 0 && unmatchedAnswers[positionInUnmatched]) {
+    return unmatchedAnswers[positionInUnmatched];
+  }
+  
+  return null;
+};
+
+/**
  * Analyze form responses
  */
 export const analyzeResponses = (responses, questions) => {
@@ -161,9 +299,9 @@ export const analyzeResponses = (responses, questions) => {
     questionAnalysis: {}
   };
 
-  questions.forEach(question => {
+  questions.forEach((question, qIdx) => {
     const questionResponses = responses.map(r => 
-      r.answers.find(a => a.questionId === question.id)
+      findAnswerForQuestion(r, question, qIdx, questions)
     ).filter(Boolean);
 
     analysis.questionAnalysis[question.id] = {
@@ -285,8 +423,9 @@ export const exportToCSV = (responses, questions) => {
   const rows = responses.map(response => {
     const row = [new Date(response.submittedAt).toLocaleString()];
     
-    questions.forEach(question => {
-      const answer = response.answers.find(a => a.questionId === question.id);
+    questions.forEach((question, qIdx) => {
+      // Use smart matching with type inference
+      const answer = findAnswerForQuestion(response, question, qIdx, questions);
       const value = answer ? (Array.isArray(answer.value) ? answer.value.join(', ') : answer.value) : '';
       row.push(value);
     });
@@ -299,4 +438,53 @@ export const exportToCSV = (responses, questions) => {
     .join('\n');
   
   return csv;
+};
+
+/**
+ * Export responses to Excel (XLSX)
+ */
+export const exportToExcel = async (responses, questions, filename = 'responses') => {
+  // Dynamically import xlsx to avoid loading it until needed
+  const XLSX = await import('xlsx');
+  
+  const headers = ['Timestamp', 'Response ID', ...questions.map(q => q.label || 'Untitled Question')];
+  const data = responses.map(response => {
+    const row = [
+      new Date(response.submittedAt).toLocaleString(),
+      response.id
+    ];
+    
+    questions.forEach((question, qIdx) => {
+      // Use smart matching with type inference
+      const answer = findAnswerForQuestion(response, question, qIdx, questions);
+      const value = answer ? (Array.isArray(answer.value) ? answer.value.join(', ') : answer.value) : '';
+      row.push(value);
+    });
+    
+    return row;
+  });
+  
+  // Create workbook and worksheet
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_array ? 
+    XLSX.utils.aoa_to_sheet([headers, ...data]) : 
+    XLSX.utils.aoa_to_sheet([headers, ...data]);
+  
+  // Auto-size columns
+  const colWidths = headers.map((h, i) => {
+    const maxLen = Math.max(
+      h.length,
+      ...data.map(row => String(row[i] || '').length)
+    );
+    return { wch: Math.min(maxLen + 2, 50) };
+  });
+  ws['!cols'] = colWidths;
+  
+  // Add worksheet to workbook
+  XLSX.utils.book_append_sheet(wb, ws, 'Responses');
+  
+  // Generate and download file
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+  
+  return { success: true, count: responses.length };
 };

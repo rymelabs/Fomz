@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Plus, BarChart3, ExternalLink, Loader2, Sparkles, FileEdit, MoreVertical, Trash2, Share2, Pencil, Eye } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { Plus, BarChart3, ExternalLink, Loader2, Sparkles, FileEdit, MoreVertical, Trash2, Share2, Pencil, Eye, Copy, Search, ArrowUpDown, Check, FileText } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
-import { getUserForms, publishForm as publishFormService, deleteForm } from '../../services/formService';
+import { getUserForms, publishForm as publishFormService, deleteForm, duplicateForm } from '../../services/formService';
 import { getDraftCount } from '../../services/draftService';
 import { useUserStore } from '../../store/userStore';
+import { useThemeStore } from '../../store/themeStore';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { trackFormDeleted } from '../../services/analyticsService';
 
 const ClipboardIllustration = () => (
   <svg viewBox="0 0 140 180" className="mx-auto h-32 w-32 text-gray-300" fill="none">
@@ -20,32 +22,9 @@ const ClipboardIllustration = () => (
   </svg>
 );
 
-const themeTileBackgrounds = {
-  blue: 'from-[#7CA7FF] to-[#4f46e5]',
-  green: 'from-[#B6F3CF] to-[#16a34a]',
-  mixed: 'from-[#a78bfa] to-[#7c3aed]',
-  soft: 'from-[#fecdd3] to-[#dc2626]',
-  minimal: 'from-[#f1f5f9] to-[#64748b]',
-  dark: 'from-[#0f172a] to-[#000000]',
-  coral: 'from-[#ff9a8b] via-[#ffb347] to-[#ffd166]',
-  forest: 'from-[#0f9b0f] via-[#10b981] to-[#38b2ac]',
-  aurora: 'from-[#312e81] via-[#22d3ee] to-[#0ea5e9]',
-  sandstone: 'from-[#f2e8cf] via-[#e8d0a9] to-[#d9a05b]',
-  neon: 'from-[#0ea5e9] via-[#6366f1] to-[#22d3ee]',
-  berry: 'from-[#4c1d95] via-[#7c3aed] to-[#ec4899]',
-  slate: 'from-[#0f172a] via-[#1e293b] to-[#0f172a]',
-  sunrise: 'from-[#ff9a9e] via-[#fad0c4] to-[#fad0c4]',
-  teal: 'from-[#14b8a6] via-[#0ea5e9] to-[#6366f1]',
-  violet: 'from-[#a855f7] via-[#6366f1] to-[#22d3ee]',
-  citrus: 'from-[#fbbf24] via-[#f97316] to-[#ef4444]',
-  cobalt: 'from-[#0f172a] via-[#1e3a8a] to-[#2563eb]',
-  blush: 'from-[#fda4af] via-[#f9a8d4] to-[#fdf2f8]',
-  lagoon: 'from-[#0ea5e9] via-[#22c55e] to-[#bef264]',
-  latte: 'from-[#f7ead7] via-[#e0c9a6] to-[#c59b6c]'
-};
-
 const MyForms = () => {
   const { user } = useUserStore();
+  const { themes } = useThemeStore();
   const navigate = useNavigate();
   const { signInGoogle } = useAuth();
   const [forms, setForms] = useState([]);
@@ -55,23 +34,86 @@ const MyForms = () => {
   const [draftCount, setDraftCount] = useState(0);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('updatedAt'); // 'updatedAt', 'title', 'responses'
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc', 'desc'
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [duplicating, setDuplicating] = useState(null);
   const menuRef = useRef(null);
+  const sortMenuRef = useRef(null);
 
-  // Close menu when clicking outside
+  // Filter and sort forms
+  const filteredForms = useMemo(() => {
+    let result = [...forms];
+    
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(form => 
+        form.title?.toLowerCase().includes(query) || 
+        form.description?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      
+      if (sortBy === 'title') {
+        comparison = (a.title || '').localeCompare(b.title || '');
+      } else if (sortBy === 'responses') {
+        comparison = (a.responses || 0) - (b.responses || 0);
+      } else if (sortBy === 'updatedAt') {
+        const dateA = a.updatedAt?.toDate?.() || new Date(0);
+        const dateB = b.updatedAt?.toDate?.() || new Date(0);
+        comparison = dateA - dateB;
+      }
+      
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+    
+    return result;
+  }, [forms, searchQuery, sortBy, sortOrder]);
+
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpenMenuId(null);
+      }
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target)) {
+        setShowSortMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Handle form duplication
+  const handleDuplicateForm = async (formId, e) => {
+    e.stopPropagation();
+    if (!user) return;
+    
+    setDuplicating(formId);
+    try {
+      const newForm = await duplicateForm(formId, user.uid);
+      setForms(prev => [newForm, ...prev]);
+      toast.success('Form duplicated successfully');
+      setOpenMenuId(null);
+    } catch (error) {
+      console.error('Duplicate failed', error);
+      toast.error('Failed to duplicate form');
+    } finally {
+      setDuplicating(null);
+    }
+  };
+
   const handleDeleteForm = async (formId) => {
     try {
       await deleteForm(formId);
       setForms((prev) => prev.filter((f) => f.id !== formId));
+      // Track form deletion
+      trackFormDeleted(formId);
       toast.success('Form deleted successfully');
     } catch (error) {
       console.error('Delete failed', error);
@@ -148,22 +190,100 @@ const MyForms = () => {
         <div className="flex items-center justify-between">
           <p className="font-display text-xl font-bold text-gray-900">My Forms</p>
           <button
-            className={`inline-flex items-center gap-1.5 text-sm font-medium transition-all active:scale-95 ${
+            className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide transition-all active:scale-95 px-2 py-1 rounded-md hover:bg-gray-50 ${
               draftCount > 0 
-                ? 'text-amber-600 hover:text-amber-700' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-amber-600' 
+                : 'text-gray-400'
             }`}
             onClick={() => navigate('/dashboard/drafts')}
           >
-            <FileEdit className="h-4 w-4" />
+            <FileEdit className="h-3 w-3" />
             Drafts
             {draftCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
+              <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-100 text-[9px] font-bold text-amber-700">
                 {draftCount}
               </span>
             )}
           </button>
         </div>
+        {/* Search and Sort Controls */}
+        {forms.length > 0 && (
+          <div className="flex flex-row gap-2 items-center">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-transparent"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            
+            {/* Sort Dropdown */}
+            <div className="relative inline-block" ref={sortMenuRef}>
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide border border-gray-200 rounded-md hover:bg-gray-50 transition-colors whitespace-nowrap"
+              >
+                <ArrowUpDown className="h-3 w-3 text-gray-500" />
+                <span className="text-gray-700 hidden sm:inline">
+                  {sortBy === 'updatedAt' ? 'Updated' : sortBy === 'title' ? 'Name' : 'Resp'}
+                </span>
+              </button>
+              
+              {showSortMenu && (
+                <div className="absolute right-0 top-full mt-2 z-50 min-w-[150px] rounded-lg bg-white shadow-lg border border-gray-200 py-1">
+                  <button
+                    onClick={() => { setSortBy('updatedAt'); setSortOrder('desc'); setShowSortMenu(false); }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    Last updated
+                    {sortBy === 'updatedAt' && <Check className="h-3 w-3 text-primary-600" />}
+                  </button>
+                  <button
+                    onClick={() => { setSortBy('title'); setSortOrder('asc'); setShowSortMenu(false); }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    Name (A-Z)
+                    {sortBy === 'title' && sortOrder === 'asc' && <Check className="h-3 w-3 text-primary-600" />}
+                  </button>
+                  <button
+                    onClick={() => { setSortBy('title'); setSortOrder('desc'); setShowSortMenu(false); }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    Name (Z-A)
+                    {sortBy === 'title' && sortOrder === 'desc' && <Check className="h-3 w-3 text-primary-600" />}
+                  </button>
+                  <button
+                    onClick={() => { setSortBy('responses'); setSortOrder('desc'); setShowSortMenu(false); }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    Most responses
+                    {sortBy === 'responses' && sortOrder === 'desc' && <Check className="h-3 w-3 text-primary-600" />}
+                  </button>
+                  <button
+                    onClick={() => { setSortBy('responses'); setSortOrder('asc'); setShowSortMenu(false); }}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    Least responses
+                    {sortBy === 'responses' && sortOrder === 'asc' && <Check className="h-3 w-3 text-primary-600" />}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-3 text-xs uppercase tracking-normal text-gray-500">
           <button className="inline-flex items-center gap-2 rounded-full border border-gray-900 px-2 py-1.5 text-sm font-semibold text-gray-900 transition-all active:scale-95" onClick={() => navigate('/dashboard/create')}>
             <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-900 text-sm transition-colors group-hover:border-white">+</span>
@@ -171,7 +291,7 @@ const MyForms = () => {
           </button>
           <button 
             title="Let Fomzy draft sections, questions, and theme"
-            className="inline-flex items-center gap-2 rounded-full border border-sky-500 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-700 transition-all hover:bg-sky-100 active:scale-95" 
+            className="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1.5 text-sm font-semibold text-primary-700 transition-all hover:bg-primary-100 active:scale-95" 
             onClick={() => {
               if (window?.navigator?.vibrate) {
                 window.navigator.vibrate(10);
@@ -179,12 +299,8 @@ const MyForms = () => {
               setIsAIModalOpen(true);
             }}
           >
-            <Sparkles className="h-4 w-4 text-sky-600" />
+            <Sparkles className="h-4 w-4 text-primary-600" />
             Create with Fomzy
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-2 py-1.5 text-sm text-gray-600 transition-all active:scale-95" onClick={() => navigate('/dashboard/analytics')}>
-            <BarChart3 className="h-3 w-3" />
-            View analytics
           </button>
         </div>
       </div>
@@ -214,10 +330,22 @@ const MyForms = () => {
             Create a form
           </button>
         </div>
+      ) : filteredForms.length === 0 ? (
+        <div className="text-center py-16 animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <Search className="mx-auto h-12 w-12 text-gray-300" />
+          <h3 className="mt-4 font-display text-xl text-gray-900">No forms found</h3>
+          <p className="mt-2 text-gray-600">Try adjusting your search query.</p>
+          <button
+            className="mt-4 text-sm text-primary-600 hover:text-primary-700"
+            onClick={() => setSearchQuery('')}
+          >
+            Clear search
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
-          {forms.map((form, index) => {
-            const previewGradient = themeTileBackgrounds[form.theme] || 'from-gray-100 to-gray-200';
+          {filteredForms.map((form, index) => {
+            const themeConfig = themes[form.theme] || themes.blue;
             const isPublished = Boolean(form.settings?.published);
             const updatedLabel = form.updatedAt?.toDate?.().toLocaleDateString?.() || 'Recently';
 
@@ -225,14 +353,21 @@ const MyForms = () => {
               <div
                 key={form.id}
                 onClick={() => navigate(`/builder?formId=${form.id}`)}
-                className="group relative flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-3 sm:p-5 transition-all hover:border-gray-400 cursor-pointer animate-card-enter opacity-0"
-                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
+                className={`group relative flex flex-col justify-between rounded-xl p-3 sm:p-5 transition-all cursor-pointer animate-card-enter opacity-0 border border-gray-400 border-l-4 hover:shadow-sm ${openMenuId === form.id ? 'z-50' : 'z-0'}`}
+                style={{ 
+                  animationDelay: `${index * 50}ms`, 
+                  animationFillMode: 'forwards',
+                  borderLeftColor: themeConfig.primaryColor
+                }}
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div className="flex-1 pr-2 sm:pr-4 min-w-0">
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <div className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-gradient-to-br ${previewGradient}`}></div>
+                        <div 
+                          className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full"
+                          style={{ background: themeConfig.gradient }}
+                        ></div>
                         <span className={`text-[9px] sm:text-[10px] font-medium uppercase tracking-wider ${isPublished ? 'text-green-600' : 'text-gray-400'}`}>
                           {isPublished ? 'Published' : 'Draft'}
                         </span>
@@ -252,7 +387,40 @@ const MyForms = () => {
                         <MoreVertical className="h-4 w-4" />
                       </button>
                       {openMenuId === form.id && (
-                        <div className="absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-lg bg-white shadow-lg border border-gray-200 py-1">
+                        <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-lg bg-white shadow-lg border border-gray-200 py-1">
+                          <button
+                            onClick={(e) => handleDuplicateForm(form.id, e)}
+                            disabled={duplicating === form.id}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            {duplicating === form.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            {duplicating === form.id ? 'Duplicating...' : 'Duplicate'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/forms/${form.id}/responses`);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <FileText className="h-4 w-4" />
+                            View Responses
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/dashboard/analytics/${form.id}`);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                            Analytics
+                          </button>
+                          <hr className="my-1 border-gray-100" />
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

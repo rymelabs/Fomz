@@ -8,6 +8,7 @@ import Input from '../../components/ui/Input';
 import ThemeSelector from '../../components/builder/ThemeSelector';
 import { updateDisplayName, deleteAccount } from '../../services/userService';
 import toast from 'react-hot-toast';
+import { trackProfileUpdated, trackAccountDeleted, trackAppBackgroundChanged } from '../../services/analyticsService';
 
 const Profile = () => {
   const { user } = useUserStore();
@@ -49,6 +50,7 @@ const Profile = () => {
     setSaving(true);
     try {
       await updateDisplayName(displayName.trim());
+      trackProfileUpdated('display_name');
       toast.success('Name updated');
     } catch (err) {
       console.error('Failed to update name', err);
@@ -78,6 +80,7 @@ const Profile = () => {
     setDeleting(true);
     try {
       await deleteAccount();
+      trackAccountDeleted();
       toast.success('Account deleted');
       navigate('/');
     } catch (err) {
@@ -156,7 +159,7 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setAppBackground('default')}
+                  onClick={() => { setAppBackground('default'); trackAppBackgroundChanged('default'); }}
                   className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                     appBackgroundId === 'default'
                       ? 'border-sky-500 text-sky-700 bg-sky-50'
@@ -173,7 +176,7 @@ const Profile = () => {
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => setAppBackground(opt.id)}
+                    onClick={() => { setAppBackground(opt.id); trackAppBackgroundChanged(opt.id); }}
                     className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                       appBackgroundId === opt.id
                         ? 'border-sky-500 text-sky-700 bg-sky-50'

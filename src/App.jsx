@@ -8,12 +8,54 @@ import { Toaster } from 'react-hot-toast';
 import { useUserStore } from './store/userStore';
 import { hasLocalFormsToMigrate } from './services/migrationService';
 import MigrationModal from './components/ui/MigrationModal';
+import { 
+  setAnalyticsUserId, 
+  setAnalyticsUserProperties,
+  trackLogin,
+  trackLogout,
+  trackSessionStart,
+  trackUserLocation
+} from './services/analyticsService';
 
 const App = () => {
   const { initializing } = useAuth();
   const { isAuthenticated, user } = useUserStore();
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const [migrationChecked, setMigrationChecked] = useState(false);
+  const [prevAuthState, setPrevAuthState] = useState(null);
+
+  // Track session start and user location on mount
+  useEffect(() => {
+    trackSessionStart();
+    trackUserLocation(); // Capture user's location via IP geolocation
+  }, []);
+
+  // Track authentication changes and set user analytics
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Set user ID for analytics
+      setAnalyticsUserId(user.uid);
+      
+      // Set user properties
+      setAnalyticsUserProperties({
+        user_type: 'authenticated',
+        sign_in_provider: user.providerData?.[0]?.providerId || 'unknown',
+      });
+      
+      // Track login if previously not authenticated
+      if (prevAuthState === false) {
+        trackLogin(user.providerData?.[0]?.providerId || 'email');
+      }
+    } else if (!isAuthenticated && prevAuthState === true) {
+      // User just logged out
+      trackLogout();
+      setAnalyticsUserProperties({
+        user_type: 'anonymous',
+      });
+    }
+    
+    setPrevAuthState(isAuthenticated);
+  }, [isAuthenticated, user, prevAuthState]);
 
   // Check for local forms to migrate when user signs in
   useEffect(() => {

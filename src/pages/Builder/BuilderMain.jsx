@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Layout, Eye, Edit, Cloud, CloudOff } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Plus, Layout, Eye, Edit, Cloud, CloudOff, Undo2, Redo2, BookMarked, ChevronDown, Pencil } from 'lucide-react';
 import QuestionCard from '../../components/builder/QuestionCard';
 import ThemeSelector from '../../components/builder/ThemeSelector';
 import LogoUploader from '../../components/builder/LogoUploader';
 import FormSettings from '../../components/builder/FormSettings';
 import StyleSettings from '../../components/builder/StyleSettings';
+import LogicBuilder from '../../components/builder/LogicBuilder';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
+import SaveAsTemplateModal from '../../components/dashboard/SaveAsTemplateModal';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { getForm } from '../../services/formService';
@@ -17,6 +18,36 @@ import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
 
+const CollapsibleSidebarSection = ({ title, children, defaultOpen = false, className = '', rightElement = null }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <section className={`rounded-2xl border border-gray-200 bg-white/80 backdrop-blur transition-all overflow-hidden ${className}`}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 bg-transparent hover:bg-gray-50/50 transition-colors text-left group"
+      >
+        <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+        </div>
+        <div className="flex items-center gap-2">
+            {rightElement}
+            <ChevronDown 
+            className={`h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            />
+        </div>
+      </button>
+      
+      {isOpen && (
+        <div className="p-4 pt-0">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+};
+
 const BuilderMain = () => {
   const {
     title,
@@ -25,8 +56,6 @@ const BuilderMain = () => {
     questions,
     addQuestion,
     addSection,
-    currentQuestionIndex,
-    setCurrentQuestion,
     updateFormInfo,
     updateSection,
     initForm,
@@ -34,13 +63,16 @@ const BuilderMain = () => {
     isSaving,
     loadLocalDraft
   } = useFormBuilder();
-  const { generateForm, isGenerating, isDirty, lastSavedAt, draftId, id: formId } = useFormBuilderStore((state) => ({
+  const { generateForm, isGenerating, isDirty, lastSavedAt, id: formId, undo, redo, canUndo, canRedo } = useFormBuilderStore((state) => ({
     generateForm: state.generateForm,
     isGenerating: state.isGenerating,
     isDirty: state.isDirty,
     lastSavedAt: state.lastSavedAt,
-    draftId: state.draftId,
-    id: state.id
+    id: state.id,
+    undo: state.undo,
+    redo: state.redo,
+    canUndo: state.canUndo,
+    canRedo: state.canRedo
   }));
   const { user } = useUserStore();
   const [searchParams] = useSearchParams();
@@ -49,9 +81,49 @@ const BuilderMain = () => {
   const initializedRef = useRef(false);
   const themeSectionRef = useRef(null);
   const [showFomzy, setShowFomzy] = useState(false);
+  const [fomzyMode, setFomzyMode] = useState('create');
   const [showFomzyMenu, setShowFomzyMenu] = useState(false);
   const fomzyMenuRef = useRef(null);
   const [showFomzyOverlay, setShowFomzyOverlay] = useState(false);
+  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false);
+
+  // Keyboard shortcuts for undo/redo
+  const handleKeyDown = useCallback((e) => {
+    // Check if user is typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+      return;
+    }
+    
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        // Redo: Ctrl+Shift+Z
+        if (canRedo()) {
+          redo();
+          toast('Redo', { icon: '↪️', duration: 1500 });
+        }
+      } else {
+        // Undo: Ctrl+Z
+        if (canUndo()) {
+          undo();
+          toast('Undo', { icon: '↩️', duration: 1500 });
+        }
+      }
+    }
+    // Also support Ctrl+Y for redo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+      e.preventDefault();
+      if (canRedo()) {
+        redo();
+        toast('Redo', { icon: '↪️', duration: 1500 });
+      }
+    }
+  }, [undo, redo, canUndo, canRedo]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   useEffect(() => {
     if (!initializedRef.current) {
@@ -233,29 +305,55 @@ const BuilderMain = () => {
 
   return (
     <>
-    <AIGeneratorModal isOpen={showFomzy} onClose={() => setShowFomzy(false)} />
+    <AIGeneratorModal
+      isOpen={showFomzy}
+      onClose={() => setShowFomzy(false)}
+      mode={fomzyMode}
+    />
     <div className="grid lg:grid-cols-[2fr,1fr] gap-4 animate-fade-in">
       <div className="space-y-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <header className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all relative">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <p className="text-xs uppercase tracking-normal text-gray-500 font-semibold">Form Builder</p>
+            <div className="flex items-center gap-2 md:gap-3">
+              <p className="text-[10px] md:text-xs uppercase tracking-normal text-gray-500 font-semibold">Form Builder</p>
+              
+              {/* Undo/Redo buttons */}
+              <div className="flex items-center gap-0.5 md:gap-1 border-l border-gray-200 pl-2 md:pl-3">
+                <button
+                  onClick={() => { if (canUndo()) { undo(); toast('Undo', { icon: '↩️', duration: 1500 }); } }}
+                  disabled={!canUndo()}
+                  className="p-1 md:p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo2 className="h-3 w-3 md:h-4 md:w-4" />
+                </button>
+                <button
+                  onClick={() => { if (canRedo()) { redo(); toast('Redo', { icon: '↪️', duration: 1500 }); } }}
+                  disabled={!canRedo()}
+                  className="p-1 md:p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  title="Redo (Ctrl+Shift+Z)"
+                >
+                  <Redo2 className="h-3 w-3 md:h-4 md:w-4" />
+                </button>
+              </div>
+              
               {/* Auto-save status indicator */}
-              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs text-gray-400">
                 {isDirty ? (
                   <>
-                    <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <div className="h-1 md:h-1.5 w-1 md:w-1.5 rounded-full bg-amber-400 animate-pulse" />
                     <span>Saving...</span>
                   </>
                 ) : lastSavedAt ? (
                   <>
                     {user ? (
-                      <Cloud className="h-3.5 w-3.5 text-green-500" />
+                      <Cloud className="h-3 w-3 md:h-3.5 md:w-3.5 text-green-500" />
                     ) : (
-                      <CloudOff className="h-3.5 w-3.5 text-gray-400" />
+                      <CloudOff className="h-3 w-3 md:h-3.5 md:w-3.5 text-gray-400" />
                     )}
                     <span className="text-green-600">
-                      {formId ? 'Saved' : (user ? 'Saved to drafts' : 'Saved locally')}
+                      <span className="md:hidden">{formId ? 'Saved' : (user ? 'Draft' : 'Local')}</span>
+                      <span className="hidden md:inline">{formId ? 'Saved' : (user ? 'Saved to drafts' : 'Saved locally')}</span>
                     </span>
                   </>
                 ) : null}
@@ -264,9 +362,9 @@ const BuilderMain = () => {
             <button
               onClick={saveForm}
               disabled={isSaving}
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-2.5 py-1 text-xs md:px-3 md:py-1.5 md:text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="inline-flex items-center gap-1 md:gap-1.5 rounded-full bg-primary-600 px-2.5 py-1 text-[10px] md:px-3 md:py-1.5 md:text-sm font-medium text-white transition-all hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
-              {isSaving ? 'Saving...' : 'Save Form'}
+              {isSaving ? 'Saving...' : <><span className="md:hidden">Save</span><span className="hidden md:inline">Save Form</span></>}
             </button>
           </div>
           
@@ -306,6 +404,24 @@ const BuilderMain = () => {
             >
               <Eye className="h-3 w-3 md:h-4 md:w-4" />
               Preview
+            </button>
+            <button
+              onClick={() => {
+                if (!user) {
+                  toast.error('Please sign in to save templates');
+                  return;
+                }
+                if (questions.length === 0) {
+                  toast.error('Add some questions first');
+                  return;
+                }
+                setShowSaveAsTemplate(true);
+              }}
+              className="inline-flex items-center gap-1 md:gap-2 rounded-full border border-gray-200 px-2.5 py-1 text-xs md:px-4 md:py-2 md:text-sm text-gray-700 transition-all hover:border-amber-500 hover:bg-amber-50 active:scale-95"
+              title="Save as Template"
+            >
+              <BookMarked className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden md:inline">Save as Template</span>
             </button>
             <button
               onClick={() => addQuestion()}
@@ -374,7 +490,7 @@ const BuilderMain = () => {
                           </button>
                         </div>
                       ) : (
-                        sectionQuestions.map((question, questionIndex) => (
+                        sectionQuestions.map((question) => (
                           <QuestionCard 
                             key={question.id} 
                             question={question} 
@@ -383,6 +499,7 @@ const BuilderMain = () => {
                           />
                         ))
                       )}
+                    
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
@@ -443,6 +560,10 @@ const BuilderMain = () => {
           <LogoUploader />
         </section>
 
+        <CollapsibleSidebarSection title="Conditional Logic">
+          <LogicBuilder />
+        </CollapsibleSidebarSection>
+
         <section className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur p-4 transition-all">
           <h2 className="text-sm font-semibold text-gray-900 mb-3">Form settings</h2>
           <FormSettings />
@@ -455,9 +576,22 @@ const BuilderMain = () => {
           className="mb-2 flex flex-col gap-1.5 md:gap-2 rounded-2xl border border-gray-200 bg-white p-2 md:p-3 shadow-xl transition-all duration-200 ease-out animate-fade-in-up"
         >
           <button
+            className="inline-flex items-center gap-1.5 md:gap-2 rounded-full border border-violet-200 px-2.5 py-1.5 text-xs md:px-3 md:py-2 md:text-sm font-semibold text-violet-700 hover:border-violet-500 hover:bg-violet-50 active:scale-95 transition"
+            onClick={() => {
+              setShowFomzyMenu(false);
+              setFomzyMode('edit');
+              setShowFomzy(true);
+            }}
+            disabled={isGenerating}
+          >
+            <Pencil className="h-3 w-3 md:h-4 md:w-4" />
+            Edit this form
+          </button>
+          <button
             className="inline-flex items-center gap-1.5 md:gap-2 rounded-full border border-sky-200 px-2.5 py-1.5 text-xs md:px-3 md:py-2 md:text-sm font-semibold text-sky-700 hover:border-sky-500 hover:bg-sky-50 active:scale-95 transition"
             onClick={() => {
               setShowFomzyMenu(false);
+              setFomzyMode('create');
               setShowFomzy(true);
             }}
             disabled={isGenerating}
@@ -509,6 +643,14 @@ const BuilderMain = () => {
         </div>
       </div>
     )}
+    <SaveAsTemplateModal
+      isOpen={showSaveAsTemplate}
+      onClose={() => setShowSaveAsTemplate(false)}
+      form={{ title, description, questions }}
+      onSaved={(template) => {
+        toast.success(`Template "${template.name}" saved!`);
+      }}
+    />
     </>
   );
 };

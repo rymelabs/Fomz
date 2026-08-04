@@ -10,6 +10,10 @@ import DateInput from '../../components/forms/DateInput';
 import NumberInput from '../../components/forms/NumberInput';
 import EmailInput from '../../components/forms/EmailInput';
 import ImageBlock from '../../components/forms/ImageBlock';
+import PhoneInput from '../../components/forms/PhoneInput';
+import TimeInput from '../../components/forms/TimeInput';
+import SliderInput from '../../components/forms/SliderInput';
+import AddressInput from '../../components/forms/AddressInput';
 import { useTheme } from '../../hooks/useTheme';
 import toast from 'react-hot-toast';
 
@@ -23,7 +27,11 @@ const componentMap = {
   'date': DateInput,
   'number': NumberInput,
   'email': EmailInput,
-  'image': ImageBlock
+  'image': ImageBlock,
+  'phone': PhoneInput,
+  'time': TimeInput,
+  'slider': SliderInput,
+  'address': AddressInput
 };
 
 const fontMap = {
@@ -56,6 +64,7 @@ const QuestionStep = ({
   direction = 'forward',
   isFirstCard,
   isLastCard,
+  requiredQuestionIds,
   progressPercent = 0,
   isEditMode = false,
   onBackToReview
@@ -108,7 +117,7 @@ const QuestionStep = ({
   const validateCard = () => {
     const newErrors = {};
     visibleQuestions.forEach((question) => {
-      if (!question.required) return;
+      if (!requiredQuestionIds?.has(question.id)) return;
       const val = answers[question.id];
       if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
         newErrors[question.id] = 'This question is required';
@@ -181,10 +190,19 @@ const QuestionStep = ({
               return (
                 <div key={question.id} className="space-y-4">
                   <div className="space-y-3">
-                    <p className={`text-4xl font-semibold text-gray-500 mb-6 ${fontClass}`}>
-                      {String(questionNumber).padStart(2, '0')}
+                    <div className="flex items-center justify-between">
+                      <p className={`text-4xl font-semibold text-gray-500 mb-2 ${fontClass}`}>
+                        {String(questionNumber).padStart(2, '0')}
+                      </p>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide">
+                        Question {questionNumber} of {form.questions?.length || 1}
+                        {requiredQuestionIds?.has(question.id) && <span className="text-red-500 ml-1">*</span>}
+                      </p>
+                    </div>
+                    <p className={`text-xl text-gray-900 ${fontClass}`}>
+                      {question.label || 'Untitled question'}
+                      {requiredQuestionIds?.has(question.id) && <span className="text-red-500 ml-1">*</span>}
                     </p>
-                    <p className={`text-xl text-gray-900 ${fontClass}`}>{question.label || 'Untitled question'}</p>
                     {question.helpText && <p className="text-gray-500">{question.helpText}</p>}
                   </div>
 

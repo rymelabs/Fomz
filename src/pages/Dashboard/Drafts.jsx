@@ -6,6 +6,7 @@ import { useUserStore } from '../../store/userStore';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { trackDraftDeleted } from '../../services/analyticsService';
 
 const themeTileBackgrounds = {
   blue: 'from-[#7CA7FF] to-[#4f46e5]',
@@ -101,6 +102,7 @@ const Drafts = () => {
     try {
       await deleteDraft(draftId, user.uid);
       setDrafts(prev => prev.filter(d => d.id !== draftId));
+      trackDraftDeleted(draftId);
       toast.success('Draft deleted');
     } catch (error) {
       console.error('Failed to delete draft:', error);

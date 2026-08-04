@@ -1,22 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, LayoutTemplate } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import AIGeneratorModal from '../../components/dashboard/AIGeneratorModal';
+import TemplateSelectorModal from '../../components/dashboard/TemplateSelectorModal';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
+import { trackFormCreationStarted } from '../../services/analyticsService';
 
 const CreateForm = () => {
   const navigate = useNavigate();
-  const { title, description, updateFormInfo, addQuestion, generateForm, isGenerating } = useFormBuilder();
+  const { title, description, updateFormInfo, addQuestion, generateForm, isGenerating, setQuestions } = useFormBuilder();
   const { isAuthenticated } = useUserStore();
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   const handleCreate = () => {
+    trackFormCreationStarted(!!title.trim(), !!description.trim());
     addQuestion('short-text');
     navigate('/builder', { state: { title, description } });
+  };
+
+  const handleSelectTemplate = (formData) => {
+    if (!formData) {
+      // Start from scratch
+      handleCreate();
+      return;
+    }
+    
+    // Apply template data
+    updateFormInfo({ 
+      title: formData.title, 
+      description: formData.description 
+    });
+    setQuestions(formData.questions);
+    
+    trackFormCreationStarted(true, !!formData.description);
+    navigate('/builder', { state: { title: formData.title, description: formData.description, fromTemplate: true } });
   };
 
   const handleCreateWithAI = async () => {
@@ -78,6 +100,15 @@ const CreateForm = () => {
             <Button variant="ghost" onClick={() => navigate('/dashboard')} size="sm" className="w-full md:w-auto transition-transform active:scale-95 text-sm">
               Cancel
             </Button>
+            <Button
+              onClick={() => setIsTemplateModalOpen(true)}
+              variant="ghost"
+              size="sm"
+              className="w-full md:w-auto inline-flex justify-center items-center gap-2 transition-all active:scale-95 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+            >
+              <LayoutTemplate className="h-4 w-4" />
+              Use Template
+            </Button>
             <Button 
               onClick={handleCreateWithAI} 
               disabled={isGenerating}
@@ -94,6 +125,11 @@ const CreateForm = () => {
       </div>
 
       <AIGeneratorModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
+      <TemplateSelectorModal 
+        isOpen={isTemplateModalOpen} 
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleSelectTemplate}
+      />
     </div>
   );
 };

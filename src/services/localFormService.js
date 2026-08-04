@@ -248,6 +248,39 @@ export const getLocalResponseById = (shareId, responseId) => {
 };
 
 /**
+ * Update a local response
+ * @param {string} shareId - The form's share ID
+ * @param {string} responseId - The response ID
+ * @param {Object} updates - The updates to apply
+ * @returns {Object|null} Updated response or null if not found
+ */
+export const updateLocalResponse = (shareId, responseId, updates) => {
+  try {
+    const responses = getLocalResponses(shareId);
+    const responseIndex = responses.findIndex(r => r.id === responseId);
+    
+    if (responseIndex === -1) {
+      console.error('Response not found:', responseId);
+      return null;
+    }
+    
+    responses[responseIndex] = {
+      ...responses[responseIndex],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    const key = `${LOCAL_RESPONSES_PREFIX}${shareId}`;
+    localStorage.setItem(key, JSON.stringify(responses));
+    
+    return responses[responseIndex];
+  } catch (error) {
+    console.error('Error updating local response:', error);
+    return null;
+  }
+};
+
+/**
  * Delete a local response
  * @param {string} shareId - The form's share ID
  * @param {string} responseId - The response ID

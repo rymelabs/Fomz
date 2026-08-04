@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, X } from 'lucide-react';
+import { X, GitBranch } from 'lucide-react';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
+import { useFormBuilderStore } from '../../store/formBuilderStore';
 import { useTheme } from '../../hooks/useTheme';
+import { getVisibleQuestionIds, getNextQuestionId, getRequiredQuestionIds } from '../../services/logicService';
 import ShortText from '../../components/forms/ShortText';
 import LongText from '../../components/forms/LongText';
 import MultipleChoice from '../../components/forms/MultipleChoice';
@@ -13,6 +15,10 @@ import DateInput from '../../components/forms/DateInput';
 import NumberInput from '../../components/forms/NumberInput';
 import EmailInput from '../../components/forms/EmailInput';
 import ImageBlock from '../../components/forms/ImageBlock';
+import PhoneInput from '../../components/forms/PhoneInput';
+import TimeInput from '../../components/forms/TimeInput';
+import SliderInput from '../../components/forms/SliderInput';
+import AddressInput from '../../components/forms/AddressInput';
 
 const componentMap = {
   'short-text': ShortText,
@@ -24,7 +30,11 @@ const componentMap = {
   'date': DateInput,
   'number': NumberInput,
   'email': EmailInput,
-  'image': ImageBlock
+  'image': ImageBlock,
+  'phone': PhoneInput,
+  'time': TimeInput,
+  'slider': SliderInput,
+  'address': AddressInput
 };
 
 const fontMap = {
@@ -61,6 +71,7 @@ const radiusMap = {
 const Preview = () => {
   const navigate = useNavigate();
   const { title, description, questions, sections, logoUrl, style } = useFormBuilder();
+  const logicRules = useFormBuilderStore((state) => state.logicRules || []);
   const { themeData } = useTheme();
   const canvasRef = useRef(null);
   const [disableBackgroundAnimation, setDisableBackgroundAnimation] = useState(false);
@@ -80,7 +91,7 @@ const Preview = () => {
   };
 
   // Get all questions (from sections and loose)
-  const allQuestions = React.useMemo(() => {
+  const allQuestions = useMemo(() => {
     const sectionQuestions = sections.flatMap(section => 
       questions.filter(q => q.sectionId === section.id)
     );
@@ -88,14 +99,46 @@ const Preview = () => {
     return [...sectionQuestions, ...looseQuestions];
   }, [sections, questions]);
 
-  const currentQuestion = allQuestions[currentQuestionIndex];
+  // Get visible questions based on logic rules
+  const visibleQuestionIds = useMemo(() => {
+    return getVisibleQuestionIds(allQuestions, logicRules, answers);
+  }, [allQuestions, logicRules, answers]);
+
+  // Filter to only visible questions
+  const visibleQuestions = useMemo(() => {
+    return allQuestions.filter(q => visibleQuestionIds.has(q.id));
+  }, [allQuestions, visibleQuestionIds]);
+
+  // Get conditionally required question IDs
+  const requiredQuestionIds = useMemo(() => {
+    return getRequiredQuestionIds(allQuestions, logicRules, answers);
+  }, [allQuestions, logicRules, answers]);
+
+  // Check if current question is required (base or conditional)
+  const isQuestionRequired = (question) => {
+    return requiredQuestionIds.has(question.id);
+  };
+
+  useEffect(() => {
+    setAnswers(prev => {
+      const next = Object.fromEntries(
+        Object.entries(prev).filter(([questionId]) => visibleQuestionIds.has(questionId))
+      );
+      return Object.keys(next).length === Object.keys(prev).length ? prev : next;
+    });
+  }, [visibleQuestionIds]);
+
+  const currentQuestion = visibleQuestions[currentQuestionIndex];
   const currentSection = currentQuestion?.sectionId 
     ? sections.find(s => s.id === currentQuestion.sectionId) 
     : null;
 
-  const progressPercent = allQuestions.length > 0 
-    ? ((currentQuestionIndex + 1) / allQuestions.length) * 100 
+  const progressPercent = visibleQuestions.length > 0 
+    ? ((currentQuestionIndex + 1) / visibleQuestions.length) * 100 
     : 0;
+
+  // Check if there are active logic rules
+  const hasActiveLogic = logicRules.length > 0 && allQuestions.length !== visibleQuestions.length;
 
   useEffect(() => {
     const ua = navigator.userAgent || '';
@@ -191,7 +234,26 @@ const Preview = () => {
   }, []);
 
   const handleNext = () => {
-    if (currentQuestionIndex < allQuestions.length - 1) {
+    if (!currentQuestion) return;
+    
+    // Check for skip logic
+    const nextQuestionId = getNextQuestionId(
+      currentQuestion.id,
+      allQuestions,
+      logicRules,
+      answers
+    );
+
+    if (nextQuestionId) {
+      const nextIndex = visibleQuestions.findIndex(q => q.id === nextQuestionId);
+      if (nextIndex !== -1) {
+        setCurrentQuestionIndex(nextIndex);
+        return;
+      }
+    }
+
+    // Default: go to next visible question
+    if (currentQuestionIndex < visibleQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };
@@ -201,6 +263,13 @@ const Preview = () => {
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
+
+  // Reset to first question when visibility changes significantly
+  useEffect(() => {
+    if (currentQuestionIndex >= visibleQuestions.length && visibleQuestions.length > 0) {
+      setCurrentQuestionIndex(visibleQuestions.length - 1);
+    }
+  }, [visibleQuestions.length, currentQuestionIndex]);
 
   const handleAnswerChange = (questionId, value) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -286,6 +355,17 @@ const Preview = () => {
             ) : currentQuestion ? (
               <div className="relative overflow-hidden rounded-[32px] border border-white bg-white/10 backdrop-blur-sm p-8 shadow-[var(--fomz-card-shadow)] animate-fade-in">
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white via-white/70 to-transparent opacity-70" />
+                
+                {/* Logic indicator badge */}
+                {hasActiveLogic && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="flex items-center gap-1.5 rounded-full bg-purple-100 border border-purple-200 px-2.5 py-1 text-xs font-medium text-purple-700">
+                      <GitBranch className="h-3 w-3" />
+                      Logic Active
+                    </div>
+                  </div>
+                )}
+
                 <div className="relative space-y-12">
                   {currentSection && (
                     <div className="pt-2 pb-8">
@@ -302,10 +382,19 @@ const Preview = () => {
                   <div className="space-y-10">
                     <div className="space-y-4">
                       <div className="space-y-3">
-                        <p className="text-4xl font-semibold text-gray-500 mb-6">
-                          {String(currentQuestionIndex + 1).padStart(2, '0')}
+                        <div className="flex items-center justify-between">
+                          <p className="text-4xl font-semibold text-gray-500">
+                            {String(currentQuestionIndex + 1).padStart(2, '0')}
+                          </p>
+                          <p className="text-xs text-gray-400 uppercase tracking-wide">
+                            Question {currentQuestionIndex + 1} of {visibleQuestions.length}
+                            {isQuestionRequired(currentQuestion) && <span className="text-red-500 ml-1">*</span>}
+                          </p>
+                        </div>
+                        <p className="text-xl text-gray-900">
+                          {currentQuestion.label || 'Untitled question'}
+                          {isQuestionRequired(currentQuestion) && <span className="text-red-500 ml-1">*</span>}
                         </p>
-                        <p className="text-xl text-gray-900">{currentQuestion.label || 'Untitled question'}</p>
                         {currentQuestion.helpText && (
                           <p className="text-gray-500">{currentQuestion.helpText}</p>
                         )}
@@ -327,7 +416,7 @@ const Preview = () => {
                       style={{ backgroundColor: accent, boxShadow: themeData?.buttonShadow }}
                       onClick={handleNext}
                     >
-                      {currentQuestionIndex === allQuestions.length - 1 ? 'Review' : 'Next'}
+                      {currentQuestionIndex === visibleQuestions.length - 1 ? 'Review' : 'Next'}
                     </button>
                     <button
                       type="button"
@@ -350,10 +439,19 @@ const Preview = () => {
       </div>
 
       {/* Preview Mode Indicator */}
-      <div className="fixed bottom-6 left-6 z-40">
+      <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-2">
         <div className="rounded-full bg-yellow-100 border border-yellow-300 px-4 py-2 text-xs font-medium text-yellow-800 shadow-lg">
-          Preview Mode • {currentQuestionIndex + 1} of {allQuestions.length}
+          Preview Mode • {currentQuestionIndex + 1} of {visibleQuestions.length}
+          {allQuestions.length !== visibleQuestions.length && (
+            <span className="ml-2 text-yellow-600">({allQuestions.length - visibleQuestions.length} hidden)</span>
+          )}
         </div>
+        {logicRules.length > 0 && (
+          <div className="rounded-full bg-purple-100 border border-purple-300 px-4 py-2 text-xs font-medium text-purple-800 shadow-lg flex items-center gap-1.5">
+            <GitBranch className="h-3 w-3" />
+            {logicRules.length} Logic Rule{logicRules.length !== 1 ? 's' : ''} Active
+          </div>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import NotificationBell from '../components/dashboard/NotificationBell';
 import NotificationModal from '../components/dashboard/NotificationModal';
 import { useNotificationStore } from '../store/notificationStore';
 import { useThemeStore } from '../store/themeStore';
+import { usePageTracking } from '../hooks/useAnalytics';
 
 const getNavItems = (isAuthenticated) => {
   if (isAuthenticated) {
@@ -27,6 +28,10 @@ const DashboardLayout = ({ children }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // Track page views
+  usePageTracking();
+  
   const {
     unreadCount,
     activeHighPriority,
@@ -195,7 +200,7 @@ const DashboardLayout = ({ children }) => {
         </header>
 
         <main className="flex-1">
-          <div className={`mx-auto w-full max-w-5xl px-6 py-12 pt-40 ${location.pathname.startsWith('/builder') ? 'w-full max-w-6xl' : ''}`}>
+          <div className={`mx-auto w-full py-12 pt-40 ${location.pathname.startsWith('/builder') ? 'max-w-6xl px-2 md:px-6' : 'max-w-5xl px-6'}`}>
             {children}
           </div>
         </main>

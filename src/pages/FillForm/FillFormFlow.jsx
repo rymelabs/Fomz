@@ -12,6 +12,18 @@ import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 import { sendConfirmationEmail } from '../../services/emailService';
+import { 
+  trackFormFillStarted, 
+  trackFormFillCompleted, 
+  trackPageView 
+} from '../../services/analyticsService';
+import {
+  ACTION_TYPES,
+  getActiveActions,
+  getRequiredQuestionIds,
+  getVisibleQuestionIds,
+  calculateAdjustedProgress
+} from '../../services/logicService';
 
 const DEFAULT_SECTION_KEY = '__default';
 const PAIRED_TYPES = new Set(['short-text', 'email']);
@@ -46,6 +58,7 @@ const FillFormFlow = () => {
   const [direction, setDirection] = useState('forward');
   const [isEditMode, setIsEditMode] = useState(false);
   const isSubmittingRef = useRef(false);
+  const formStartTime = useRef(null);
   const setTheme = useThemeStore((state) => state.setTheme);
   const { user } = useUserStore();
   const { signInGoogle } = useAuth();
@@ -69,6 +82,9 @@ const FillFormFlow = () => {
         } else {
           setTheme('blue');
         }
+        
+        // Track page view for form fill
+        trackPageView('Fill Form', window.location.href);
       } catch (error) {
         console.error('Unable to load form', error);
       }
@@ -79,15 +95,39 @@ const FillFormFlow = () => {
 
   const sections = form?.sections || [];
   const questions = form?.questions || [];
+  const logicRules = form?.logicRules || [];
+
+  // Get visible questions based on logic rules
+  const visibleQuestionIds = useMemo(() => {
+    return getVisibleQuestionIds(questions, logicRules, answers);
+  }, [questions, logicRules, answers]);
+
+  // Filter questions to only show visible ones
+  const visibleQuestions = useMemo(() => {
+    return questions.filter(q => visibleQuestionIds.has(q.id));
+  }, [questions, visibleQuestionIds]);
+
+  const requiredQuestionIds = useMemo(() => {
+    return getRequiredQuestionIds(questions, logicRules, answers);
+  }, [questions, logicRules, answers]);
+
+  useEffect(() => {
+    setAnswers(prev => {
+      const next = Object.fromEntries(
+        Object.entries(prev).filter(([questionId]) => visibleQuestionIds.has(questionId))
+      );
+      return Object.keys(next).length === Object.keys(prev).length ? prev : next;
+    });
+  }, [visibleQuestionIds]);
 
   const hasSections = sections.length > 0;
   const questionsBySection = useMemo(() => {
     if (!hasSections) return {};
     return sections.reduce((acc, section) => {
-      acc[section.id] = questions.filter((q) => q.sectionId === section.id);
+      acc[section.id] = visibleQuestions.filter((q) => q.sectionId === section.id);
       return acc;
     }, {});
-  }, [hasSections, sections, questions]);
+  }, [hasSections, sections, visibleQuestions]);
 
   const cardsBySection = useMemo(() => {
     if (hasSections) {
@@ -96,8 +136,8 @@ const FillFormFlow = () => {
         return acc;
       }, {});
     }
-    return { [DEFAULT_SECTION_KEY]: buildCards(questions) };
-  }, [hasSections, sections, questions, questionsBySection]);
+    return { [DEFAULT_SECTION_KEY]: buildCards(visibleQuestions) };
+  }, [hasSections, sections, visibleQuestions, questionsBySection]);
 
   const questionLocationMap = useMemo(() => {
     const map = {};
@@ -126,9 +166,6 @@ const FillFormFlow = () => {
   }, [cardsBySection, hasSections, sections]);
 
   const currentSection = hasSections ? sections[currentSectionIndex] : null;
-  const sectionQuestions = hasSections
-    ? questionsBySection[currentSection?.id] || []
-    : questions;
   const currentSectionCards = hasSections
     ? cardsBySection[currentSection?.id] || []
     : cardsBySection[DEFAULT_SECTION_KEY] || [];
@@ -143,24 +180,15 @@ const FillFormFlow = () => {
       })
     : false;
   const isLastCard = !hasMoreCardsInSection && !hasMoreSectionsAhead;
-  const questionsBeforeCurrentSection = hasSections
-    ? sections.slice(0, currentSectionIndex).reduce((sum, section) => {
-        const sectionQs = questionsBySection[section.id] || [];
-        return sum + sectionQs.length;
-      }, 0)
-    : 0;
-  const answeredInCurrentSection = currentSectionCards
-    .slice(0, currentCardIndex)
-    .reduce((sum, card) => sum + card.length, 0);
-  const completedQuestionsInSection = Math.min(
-    answeredInCurrentSection + currentCardQuestions.length,
-    sectionQuestions.length
+  const currentProgressQuestion = currentCardQuestions[currentCardQuestions.length - 1];
+  const currentQuestionIndex = questions.findIndex(
+    question => question.id === currentProgressQuestion?.id
   );
-  const totalQuestionsCount = questions.length || 1;
-  const progressPercent =
-    totalQuestionsCount > 0
-      ? ((questionsBeforeCurrentSection + completedQuestionsInSection) / totalQuestionsCount) * 100
-      : 0;
+  const progressPercent = calculateAdjustedProgress(
+    currentQuestionIndex,
+    questions,
+    visibleQuestionIds
+  );
 
   useEffect(() => {
     if (currentSectionCards.length === 0) {
@@ -218,6 +246,27 @@ const FillFormFlow = () => {
 
   const handleNext = () => {
     setDirection('forward');
+    
+    // Check if there's explicit skip logic for the current question(s)
+    const currentQuestionIds = currentCardQuestions.map(q => q.id);
+    const skipAction = getActiveActions(logicRules, answers).find(action =>
+      action.type === ACTION_TYPES.SKIP_TO && currentQuestionIds.includes(action.fromQuestionId)
+    );
+    const skipToQuestionId = skipAction?.targetQuestionId || null;
+    
+    // If there's a skip-to target, jump to that question
+    if (skipToQuestionId) {
+      const location = questionLocationMap[skipToQuestionId];
+      if (location) {
+        if (hasSections) {
+          setCurrentSectionIndex(location.sectionIdx);
+        }
+        setCurrentCardIndex(location.cardIdx);
+        return;
+      }
+    }
+    
+    // Otherwise, proceed to next card as normal
     const nextCardIndex = currentCardIndex + 1;
     if (nextCardIndex < currentSectionCards.length) {
       setCurrentCardIndex(nextCardIndex);
@@ -279,10 +328,12 @@ const FillFormFlow = () => {
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!formId || submitting || isSubmittingRef.current) return;
+    const resolvedFormId = formId || form?.id;
+    if (!resolvedFormId || submitting || isSubmittingRef.current) return;
 
-    const firstMissing = questions.find((q) => {
-      if (!q.required) return false;
+    // Check only visible required questions
+    const firstMissing = visibleQuestions.find((q) => {
+      if (!requiredQuestionIds.has(q.id)) return false;
       const val = answers[q.id];
       return val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0);
     });
@@ -299,10 +350,10 @@ const FillFormFlow = () => {
       const payload = {
         answers: questions.map((question) => ({
           questionId: question.id,
-          value: answers[question.id] ?? null,
+          value: visibleQuestionIds.has(question.id) ? (answers[question.id] ?? null) : null,
         })),
       };
-      await submitResponse(formId, payload, user?.uid);
+      await submitResponse(resolvedFormId, payload, user?.uid);
 
       if (form.settings?.redirectUrl) {
         window.location.href = form.settings.redirectUrl;
@@ -351,6 +402,12 @@ const FillFormFlow = () => {
         }
       }
 
+      // Track successful form completion
+      const timeSpent = formStartTime.current 
+        ? Math.round((Date.now() - formStartTime.current) / 1000)
+        : 0;
+      trackFormFillCompleted(formId || form?.id, questions.length, timeSpent);
+
       setStage('success');
     } catch (error) {
       console.error('Failed to submit response', error);
@@ -368,6 +425,10 @@ const FillFormFlow = () => {
         description={form.description}
         logoUrl={form.logoUrl}
         onBegin={() => {
+          // Track form fill started
+          formStartTime.current = Date.now();
+          trackFormFillStarted(formId || form?.id, questions.length);
+          
           setCurrentSectionIndex(0);
           setCurrentCardIndex(0);
           setStage('question');
@@ -399,6 +460,7 @@ const FillFormFlow = () => {
         direction={direction}
         isFirstCard={isFirstCard}
         isLastCard={isLastCard}
+        requiredQuestionIds={requiredQuestionIds}
         progressPercent={progressPercent}
         isEditMode={isEditMode}
         onBackToReview={() => {
@@ -413,7 +475,7 @@ const FillFormFlow = () => {
     return (
       <Review
         answers={answers}
-        questions={questions}
+        questions={visibleQuestions}
         onEdit={goToQuestion}
         onSubmit={handleSubmit}
         submitting={submitting}

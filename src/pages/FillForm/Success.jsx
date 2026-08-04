@@ -5,6 +5,11 @@ import { useTheme } from '../../hooks/useTheme';
 const Success = ({ title, description, onSubmitAnother, logoUrl, form, allowResubmit = true }) => {
   const { themeData } = useTheme();
   const accent = themeData?.primaryColor || '#2563eb';
+  
+  // Get custom thank you message settings
+  const thankYouTitle = form?.settings?.thankYouTitle || 'Thanks!';
+  const thankYouMessage = form?.settings?.thankYouMessage || 'Your response has been recorded.';
+  const showFormTitle = form?.settings?.showFormTitleOnSuccess !== false;
 
   return (
     <FormShell form={form} showCreateButton={true}>
@@ -14,10 +19,10 @@ const Success = ({ title, description, onSubmitAnother, logoUrl, form, allowResu
           <div className="mx-auto h-20 w-20 rounded-full border-2 border-white/70 bg-white/90 flex items-center justify-center text-4xl animate-text-enter" style={{ color: accent }}>
             ✓
           </div>
-          <h1 className="mt-6 font-display text-3xl text-gray-900 animate-text-enter" style={{ animationDelay: '0.1s' }}>Thanks!</h1>
-          <p className="mt-2 text-gray-600 animate-text-enter" style={{ animationDelay: '0.2s' }}>Your response has been recorded.</p>
-          {title && <p className="mt-4 text-sm text-gray-500 animate-text-enter" style={{ animationDelay: '0.3s' }}>Form: {title}</p>}
-          {description && <p className="text-xs text-gray-500 animate-text-enter" style={{ animationDelay: '0.3s' }}>{description}</p>}
+          <h1 className="mt-6 font-display text-3xl text-gray-900 animate-text-enter" style={{ animationDelay: '0.1s' }}>{thankYouTitle}</h1>
+          <p className="mt-2 text-gray-600 animate-text-enter" style={{ animationDelay: '0.2s' }}>{thankYouMessage}</p>
+          {showFormTitle && title && <p className="mt-4 text-sm text-gray-500 animate-text-enter" style={{ animationDelay: '0.3s' }}>Form: {title}</p>}
+          {showFormTitle && description && <p className="text-xs text-gray-500 animate-text-enter" style={{ animationDelay: '0.3s' }}>{description}</p>}
           
           {allowResubmit && (
             <div className="animate-text-enter" style={{ animationDelay: '0.4s' }}>

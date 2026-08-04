@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Toggle from '../ui/Toggle';
 import Input from '../ui/Input';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
@@ -6,7 +6,33 @@ import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useUserStore } from '../../store/userStore';
 import toast from 'react-hot-toast';
 import Button from '../ui/Button';
-import { AlertCircle, Cloud } from 'lucide-react';
+import { AlertCircle, Cloud, ChevronDown } from 'lucide-react';
+import { trackFormPublished, trackFormShared } from '../../services/analyticsService';
+
+const SettingsGroup = ({ title, children, defaultOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+      >
+        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{title}</span>
+        <ChevronDown 
+            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+        />
+      </button>
+      {isOpen && (
+        <div className="p-3 bg-white border-t border-gray-200 space-y-3">
+            {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 // Share or copy function with iOS support
 const shareOrCopy = async (text, title = 'Share') => {
@@ -111,6 +137,9 @@ const FormSettings = () => {
         const result = await publishForm();
         currentShareId = result.shareId;
         currentId = result.id;
+        
+        // Track form published
+        trackFormPublished(currentId, questions.length);
       } else {
         const savedId = await saveForm();
         currentId = savedId;
@@ -130,9 +159,13 @@ const FormSettings = () => {
 
       const link = finalShareId ? `${window.location.origin}/f/${finalShareId}` : `${window.location.origin}/forms/${finalId}/fill`;
       const result = await shareOrCopy(link, 'Share Form');
+      
+      // Track sharing method
       if (result.shared) {
+        trackFormShared(finalId, 'native_share');
         toast.success('Form published successfully!');
       } else if (result.copied) {
+        trackFormShared(finalId, 'copy_link');
         toast.success('Form published! Share link copied to clipboard');
       } else if (!result.cancelled) {
         // Still show success for publish even if copy failed
@@ -171,49 +204,84 @@ const FormSettings = () => {
         </div>
       )}
       
-      <Toggle
-        label="Allow multiple submissions"
-        description="Let respondents submit more than once"
-        checked={settings.allowMultipleSubmissions}
-        onChange={(value) => updateSettings({ allowMultipleSubmissions: value })}
-      />
-      <Toggle
-        label="Require login"
-        description="Only authenticated users can answer"
-        checked={settings.requireLogin}
-        onChange={(value) => updateSettings({ requireLogin: value })}
-      />
-      <Toggle
-        label="Send confirmation email"
-        description="Email respondents a copy of their answers"
-        checked={settings.sendEmailReceipt}
-        onChange={(value) => updateSettings({ sendEmailReceipt: value })}
-        disabled={!isAuthenticated}
-      />
-      <Toggle
-        label="Show progress bar"
-        description="Display progress as respondents fill the form"
-        checked={settings.showProgressBar}
-        onChange={(value) => updateSettings({ showProgressBar: value })}
-      />
-      <Toggle
-        label="Publish form"
-        description={
-          !isAuthenticated 
-            ? "Save form locally and generate shareable link" 
-            : "Allow anyone to view and respond to this form"
-        }
-        checked={settings.published}
-        onChange={(value) => updateSettings({ published: value })}
-      />
+      
+      <SettingsGroup title="General Settings" defaultOpen={true}>
+        <Toggle
+          label="Allow multiple submissions"
+          description="Let respondents submit more than once"
+          checked={settings.allowMultipleSubmissions}
+          onChange={(value) => updateSettings({ allowMultipleSubmissions: value })}
+        />
+        <Toggle
+          label="Require login"
+          description="Only authenticated users can answer"
+          checked={settings.requireLogin}
+          onChange={(value) => updateSettings({ requireLogin: value })}
+        />
+        <Toggle
+          label="Show progress bar"
+          description="Display progress as respondents fill the form"
+          checked={settings.showProgressBar}
+          onChange={(value) => updateSettings({ showProgressBar: value })}
+        />
+      </SettingsGroup>
 
-      <Input
-        label="Redirect URL"
-        placeholder="https://"
-        value={settings.redirectUrl}
-        onChange={(e) => updateSettings({ redirectUrl: e.target.value })}
-        helpText="Optional link after submission"
-      />
+      <SettingsGroup title="Notifications">
+        <Toggle
+          label="Send confirmation email"
+          description="Email respondents a copy of their answers"
+          checked={settings.sendEmailReceipt}
+          onChange={(value) => updateSettings({ sendEmailReceipt: value })}
+          disabled={!isAuthenticated}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup title="After Submission">
+        <Input
+          label="Redirect URL"
+          placeholder="https://"
+          value={settings.redirectUrl}
+          onChange={(e) => updateSettings({ redirectUrl: e.target.value })}
+          helpText="Optional link after submission"
+        />
+        <div className="border-t border-gray-100 pt-3">
+          <p className="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">Thank You Page</p>
+          <div className="space-y-3">
+            <Input
+              label="Thank you title"
+              placeholder="Thanks!"
+              value={settings.thankYouTitle || ''}
+              onChange={(e) => updateSettings({ thankYouTitle: e.target.value })}
+            />
+            <Input
+              label="Thank you message"
+              placeholder="Your response has been recorded."
+              value={settings.thankYouMessage || ''}
+              onChange={(e) => updateSettings({ thankYouMessage: e.target.value })}
+            />
+            <Toggle
+              label="Show form title on success"
+              description="Display form title after submission"
+              checked={settings.showFormTitleOnSuccess !== false}
+              onChange={(value) => updateSettings({ showFormTitleOnSuccess: value })}
+            />
+          </div>
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup title="Publishing" defaultOpen={true}>
+        <Toggle
+          label="Publish form"
+          description={
+            !isAuthenticated 
+              ? "Save form locally and generate shareable link" 
+              : "Allow anyone to view and respond to this form"
+          }
+          checked={settings.published}
+          onChange={(value) => updateSettings({ published: value })}
+        />
+      </SettingsGroup>
+      
       <div className="flex gap-2 mt-3 flex-wrap">
         <Button variant="outline" size="sm" onClick={() => saveForm()}>
           {!isAuthenticated ? 'Save Locally' : 'Save'}

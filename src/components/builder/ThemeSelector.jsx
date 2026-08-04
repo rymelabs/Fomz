@@ -1,7 +1,32 @@
 import React, { useState, useMemo } from 'react';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 import { useFormBuilderStore } from '../../store/formBuilderStore';
+import { trackThemeChanged } from '../../services/analyticsService';
+
+const SettingsGroup = ({ title, children, defaultOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+      >
+        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{title}</span>
+        <ChevronDown 
+            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+        />
+      </button>
+      {isOpen && (
+        <div className="p-3 bg-white border-t border-gray-200">
+            {children}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ThemeSelector = () => {
   const { themes, currentTheme, setTheme } = useThemeStore();
@@ -15,10 +40,11 @@ const ThemeSelector = () => {
   const handleSelect = (themeKey) => {
     setTheme(themeKey);
     updateFormInfo({ theme: themeKey });
+    trackThemeChanged(themeKey);
   };
 
   return (
-    <>
+    <SettingsGroup title="Color Themes" defaultOpen={true}>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {visibleThemes.map(([key, theme]) => {
         const isActive = currentTheme === key;
@@ -100,8 +126,9 @@ const ThemeSelector = () => {
           </div>
         </div>
       )}
-    </>
+    </SettingsGroup>
   );
 };
+
 
 export default ThemeSelector;
