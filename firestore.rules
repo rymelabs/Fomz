@@ -57,8 +57,24 @@ service cloud.firestore {
 
     // Per-user notification state
     match /users/{userId}/notifications/{notificationId} {
-      // A user can read/write only their own notification state
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // A user can read their own notifications
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // A user can update/delete their own notifications (mark as read, etc.)
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      
+      // Anyone can create a notification for a user (for form response notifications)
+      // This allows the system to notify form owners when responses are submitted
+      allow create: if true;
+    }
+
+    // User-created templates collection
+    match /templates/{templateId} {
+      // Allow creating a template only if authenticated and userId matches
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+
+      // Allow read/update/delete only for the creator
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
     // You can define other collection-level defaults here or keep everything else restricted
