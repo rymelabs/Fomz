@@ -23,6 +23,8 @@ const App = () => {
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const [migrationChecked, setMigrationChecked] = useState(false);
   const [prevAuthState, setPrevAuthState] = useState(null);
+  const isPublishedFormPath = /^\/(?:f|fill)\/[^/]+\/?$/.test(window.location.pathname) ||
+    /^\/forms\/[^/]+\/fill\/?$/.test(window.location.pathname);
 
   // Track session start and user location on mount
   useEffect(() => {
@@ -83,7 +85,7 @@ const App = () => {
     console.log('Migration complete:', results);
   };
 
-  if (initializing) {
+  if (initializing && !isPublishedFormPath) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--fomz-body-bg)] text-[var(--fomz-surface-muted)]">
         Connecting to Fomz...

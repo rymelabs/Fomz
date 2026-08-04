@@ -10,7 +10,6 @@ import FormAnalytics from '../pages/Dashboard/FormAnalytics';
 import BuilderMain from '../pages/Builder/BuilderMain';
 import Preview from '../pages/Builder/Preview';
 import FillFormFlow from '../pages/FillForm/FillFormFlow';
-import ShortLinkRedirect from '../pages/ShortLinkRedirect';
 import ResponsesDashboard from '../pages/Responses/ResponsesDashboard';
 import Profile from '../pages/Dashboard/Profile';
 import Notifications from '../pages/Dashboard/Notifications';
@@ -73,7 +72,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/f/:shareId',
-    element: <ShortLinkRedirect />
+    element: <FillFormFlow />
   },
   {
     path: '/fill/:shareId',

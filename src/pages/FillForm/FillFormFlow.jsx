@@ -10,6 +10,7 @@ import { useThemeStore } from '../../store/themeStore';
 import { useUserStore } from '../../store/userStore';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/ui/Button';
+import FormLoadingProgress from '../../components/ui/FormLoadingProgress';
 import toast from 'react-hot-toast';
 import { sendConfirmationEmail } from '../../services/emailService';
 import { 
@@ -50,6 +51,13 @@ const buildCards = (questionList = []) => {
 const FillFormFlow = () => {
   const { formId, shareId } = useParams();
   const [form, setForm] = useState(null);
+  const [loadingProgress, setLoadingProgress] = useState(6);
+  const [loadingTheme, setLoadingTheme] = useState({
+    accentColor: '#64748b',
+    backgroundColor: '#f8fafc',
+    textColor: '#0f172a'
+  });
+  const [loadError, setLoadError] = useState('');
   const [stage, setStage] = useState('start');
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -60,13 +68,25 @@ const FillFormFlow = () => {
   const isSubmittingRef = useRef(false);
   const formStartTime = useRef(null);
   const setTheme = useThemeStore((state) => state.setTheme);
+  const themes = useThemeStore((state) => state.themes);
   const { user } = useUserStore();
-  const { signInGoogle } = useAuth();
+  const { signInGoogle, initializing } = useAuth();
 
   useEffect(() => {
+    let cancelled = false;
+    let completionTimer;
+    const progressTimer = window.setInterval(() => {
+      setLoadingProgress(current => {
+        if (current >= 88) return current;
+        return Math.min(88, current + (current < 60 ? 4 : 1));
+      });
+    }, 180);
+
     const loadForm = async () => {
       // Support both /forms/:formId/fill and /fill/:shareId routes
       if (!formId && !shareId) return;
+      setLoadError('');
+      setLoadingProgress(10);
       try {
         let doc;
         if (shareId) {
@@ -76,26 +96,46 @@ const FillFormFlow = () => {
           // Load by formId (for /forms/:formId/fill route)
           doc = await getForm(formId);
         }
-        setForm(doc);
-        if (doc?.theme) {
-          setTheme(doc.theme);
-        } else {
-          setTheme('blue');
+        if (!doc) {
+          throw new Error('This form could not be found or is no longer published.');
         }
+        if (cancelled) return;
+        setLoadingProgress(82);
+        const themeName = doc.theme || 'blue';
+        const formTheme = themes[themeName] || themes.blue;
+        setLoadingTheme({
+          accentColor: formTheme.primaryColor,
+          backgroundColor: formTheme.bodyBg,
+          textColor: formTheme.bodyText
+        });
+        setTheme(themeName);
+        setLoadingProgress(94);
         
         // Track page view for form fill
         trackPageView('Fill Form', window.location.href);
+        setLoadingProgress(100);
+        completionTimer = window.setTimeout(() => {
+          if (!cancelled) setForm(doc);
+        }, 180);
       } catch (error) {
         console.error('Unable to load form', error);
+        if (!cancelled) {
+          setLoadError(error?.message || 'Unable to load this form. Please try again.');
+        }
       }
     };
 
     loadForm();
-  }, [formId, shareId, setTheme]);
+    return () => {
+      cancelled = true;
+      window.clearInterval(progressTimer);
+      if (completionTimer) window.clearTimeout(completionTimer);
+    };
+  }, [formId, shareId, setTheme, themes]);
 
-  const sections = form?.sections || [];
-  const questions = form?.questions || [];
-  const logicRules = form?.logicRules || [];
+  const sections = useMemo(() => form?.sections || [], [form?.sections]);
+  const questions = useMemo(() => form?.questions || [], [form?.questions]);
+  const logicRules = useMemo(() => form?.logicRules || [], [form?.logicRules]);
 
   // Get visible questions based on logic rules
   const visibleQuestionIds = useMemo(() => {
@@ -166,9 +206,11 @@ const FillFormFlow = () => {
   }, [cardsBySection, hasSections, sections]);
 
   const currentSection = hasSections ? sections[currentSectionIndex] : null;
-  const currentSectionCards = hasSections
-    ? cardsBySection[currentSection?.id] || []
-    : cardsBySection[DEFAULT_SECTION_KEY] || [];
+  const currentSectionCards = useMemo(() => (
+    hasSections
+      ? cardsBySection[currentSection?.id] || []
+      : cardsBySection[DEFAULT_SECTION_KEY] || []
+  ), [cardsBySection, currentSection?.id, hasSections]);
   const currentCardQuestions = currentSectionCards[currentCardIndex] || [];
   const totalSections = hasSections ? sections.length : 1;
   const isFirstCard = currentSectionIndex === 0 && currentCardIndex === 0;
@@ -222,7 +264,37 @@ const FillFormFlow = () => {
   ]);
 
   if (!form) {
-    return <p className="text-center py-20 text-gray-500">Loading form...</p>;
+    if (loadError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[var(--fomz-body-bg)] px-6">
+          <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+            <p className="font-display text-3xl font-bold text-gray-900">fomz</p>
+            <h1 className="mt-6 text-xl font-semibold text-gray-900">Unable to open form</h1>
+            <p className="mt-2 text-sm text-gray-500">{loadError}</p>
+            <Button className="mt-6" onClick={() => window.location.reload()}>
+              Try again
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <FormLoadingProgress
+        progress={loadingProgress}
+        label="Loading form"
+        {...loadingTheme}
+      />
+    );
+  }
+
+  if (form.settings?.requireLogin && initializing) {
+    return (
+      <FormLoadingProgress
+        progress={98}
+        label="Verifying access"
+        {...loadingTheme}
+      />
+    );
   }
 
   if (form.settings?.requireLogin && !user) {
